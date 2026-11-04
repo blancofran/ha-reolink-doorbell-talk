@@ -1,0 +1,7 @@
+# Archivos locales de trabajo (no se publican)
+BITACORA.md
+dist/
+__pycache__/
+*.pyc
+.DS_Store
+._*

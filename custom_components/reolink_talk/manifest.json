@@ -1,0 +1,19 @@
+{
+  "domain": "reolink_talk",
+  "name": "Reolink Doorbell Talk",
+  "codeowners": ["@blancofran"],
+  "config_flow": true,
+  "dependencies": [
+    "camera",
+    "http",
+    "frontend",
+    "websocket_api",
+    "stream"
+  ],
+  "documentation": "https://github.com/blancofran/ha-reolink-doorbell-talk",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/blancofran/ha-reolink-doorbell-talk/issues",
+  "requirements": [],
+  "version": "0.3.0"
+}

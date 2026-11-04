@@ -1,0 +1,76 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Reolink doorbell",
+        "description": "Doorbell access details. The password is stored only in the Home Assistant configuration.",
+        "data": {
+          "host": "Doorbell IP address",
+          "username": "Username",
+          "password": "Password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Password expired",
+        "description": "Enter the new password for {name}.",
+        "data": {
+          "password": "Password"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure the doorbell",
+        "description": "Change the address or credentials. The password is not stored anywhere else.",
+        "data": {
+          "host": "Doorbell IP address",
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not connect to the doorbell",
+      "invalid_auth": "Wrong username or password"
+    },
+    "abort": {
+      "already_configured": "This doorbell is already configured",
+      "reauth_successful": "Password updated",
+      "reconfigure_successful": "Settings updated",
+      "wrong_device": "That address belongs to a different doorbell"
+    }
+  },
+  "entity": {
+    "camera": {
+      "view": {
+        "name": "View and listen"
+      },
+      "webrtc": {
+        "name": "WebRTC (LAN only)"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Doorbell options",
+        "data": {
+          "quality": "Video quality",
+          "preload": "Keep the video ready",
+          "webrtc": "Enable the WebRTC mode (LAN only)"
+        },
+        "data_description": {
+          "quality": "Light uses less data (recommended away from home). High shows more detail.",
+          "preload": "Makes the video appear almost instantly, in exchange for a permanent, light connection to the doorbell.",
+          "webrtc": "Creates a second camera for WebRTC viewing: the lowest delay, but it only works inside the local network and not on every device (for example not on iPhone with Home Assistant's built-in go2rtc)."
+        }
+      }
+    }
+  },
+  "selector": {
+    "quality": {
+      "options": {
+        "sub": "Light",
+        "main": "High"
+      }
+    }
+  }
+}
