@@ -44,3 +44,10 @@ def test_card_files_have_no_url_escapes():
     www = PKG / "www"
     for f in ("reolink-talk-card.js", "reolink-talk-lan-card.js", "talk-ws.js"):
         assert "%C" not in (www / f).read_text(encoding="utf-8"), f
+
+
+if __name__ == "__main__":
+    for _name in sorted(dir()):
+        if _name.startswith("test_"):
+            globals()[_name]()
+            print("ok", _name)
