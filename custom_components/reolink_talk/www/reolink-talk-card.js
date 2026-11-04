@@ -2,7 +2,7 @@
 // (micrófono del navegador -> WebSocket de Home Assistant -> timbre). Funciona igual en casa que fuera,
 // en cualquier navegador, sin WebRTC, sin go2rtc y sin abrir puertos.
 // Config: entity (cámara de la integración), view_transport (hls | webrtc), title, mode (toggle|hold), max_seconds, idle_seconds,
-// warn_seconds, timeout, autoplay, max_width, hls_url. (view_entity se acepta como alias de entity.)
+// warn_seconds, timeout, autoplay, show_info (muestra transporte y retraso), max_width, hls_url. (view_entity se acepta como alias de entity.)
 const RT_TEXT = {
   es: {
     talk: 'Hablar al timbre', talking: 'Hablando… toca para terminar', hold: 'Mantén presionado para hablar',
@@ -58,9 +58,10 @@ class ReolinkTalkCard extends HTMLElement {
     if (!entity) throw new Error('reolink-talk-card: define entity');
     this._c = Object.assign({
       title: 'Timbre', mode: 'toggle', timeout: 12, max_seconds: 90, warn_seconds: 10, idle_seconds: 45,
-      autoplay: true, max_width: 460, hls_url: null, view_transport: 'hls', view_timeout: 6, webrtc_entity: null,
+      autoplay: true, show_info: false, max_width: 460, hls_url: null, view_transport: 'hls', view_timeout: 6, webrtc_entity: null,
     }, config, { entity });
     if (!this.shadowRoot) this._build();
+    if (this._c.show_info) this.setAttribute('data-info', ''); else this.removeAttribute('data-info');
     this._set(this._state || 'off');
   }
 
@@ -135,6 +136,7 @@ class ReolinkTalkCard extends HTMLElement {
         #tr { position: absolute; left: 8px; bottom: 8px; font-size: 11px; padding: 2px 8px; border-radius: 999px;
           background: rgba(0,0,0,.55); color: #9fe9ff; pointer-events: none; }
         #tr:empty { display: none; }
+        :host(:not([data-info])) #tr { display: none; }
         #vmsg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
           text-align: center; padding: 12px; font-size: 14px; color: rgba(255,255,255,.85); pointer-events: none; }
         #b { width: 100%; min-height: 60px; border: 0; border-radius: 14px; display: flex; align-items: center; justify-content: center;
