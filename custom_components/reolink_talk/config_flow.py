@@ -190,9 +190,8 @@ class ReolinkTalkConfigFlow(ConfigFlow, domain=DOMAIN):
             else:
                 serial = dev.get("serial") or user_input[CONF_HOST]
                 await self.async_set_unique_id(serial)
-                self._abort_if_unique_id_configured(
-                    updates={CONF_HOST: user_input[CONF_HOST]}
-                )
+                # Adding the same doorbell again refreshes its address and credentials.
+                self._abort_if_unique_id_configured(updates=dict(user_input))
                 return self.async_create_entry(
                     title=dev.get("name") or user_input[CONF_HOST],
                     data=user_input,

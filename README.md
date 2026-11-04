@@ -2,7 +2,7 @@
 
 Vídeo, sonido y **voz bidireccional** con un timbre Reolink desde Home Assistant, en un único paquete (integración + tarjetas). Funciona en casa y fuera de casa **sin abrir puertos, sin VPN y sin servicios externos**: todo viaja por la conexión normal de Home Assistant.
 
-> **Estado: beta (0.3.3).** Funciona en las pruebas del autor con un único modelo (Reolink Video Doorbell PoE), pero puede haber errores y cambios entre versiones. Si algo falla, abre una *issue* con los diagnósticos de la integración (con los datos sensibles censurados).
+> **Estado: beta (0.3.4).** Funciona en las pruebas del autor con un único modelo (Reolink Video Doorbell PoE), pero puede haber errores y cambios entre versiones. Si algo falla, abre una *issue* con los diagnósticos de la integración (con los datos sensibles censurados).
 
 *English version below.*
 
@@ -49,7 +49,7 @@ También puedes **reconfigurar** (cambiar IP o credenciales) y **reautenticar** 
 
 ## Opciones de las tarjetas
 
-`entity` (obligatoria), `title`, `mode` (`toggle` o `hold`, mantener para hablar), `max_seconds` (90), `idle_seconds` (45), `warn_seconds` (10), `timeout` (12), `autoplay` (true), `show_info` (false: muestra en el vídeo el transporte y el retraso, útil para diagnosticar), `max_width` (460), `view_timeout` (6), `hls_url` (por defecto se usa la copia incluida de hls.js).
+`entity` (obligatoria), `title`, `mode` (`toggle` o `hold`, mantener para hablar), `max_seconds` (90), `idle_seconds` (45), `warn_seconds` (10), `timeout` (12), `autoplay` (true), `show_info` (false: muestra en el vídeo el transporte y el retraso, útil para diagnosticar), `view_fallback` (true: la tarjeta LAN cae a HLS si WebRTC no está disponible), `max_width` (460), `view_timeout` (6), `hls_url` (por defecto se usa la copia incluida de hls.js).
 
 ## Cómo funciona
 
@@ -59,9 +59,12 @@ También puedes **reconfigurar** (cambiar IP o credenciales) y **reautenticar** 
 ## Limitaciones conocidas
 
 - El HLS tiene un retraso mínimo de unos 3 s (viene de cómo Home Assistant segmenta el vídeo). Para menos retraso en casa usa la tarjeta LAN.
-- **iPhone/Safari**: el go2rtc integrado de Home Assistant solo admite WebRTC por TCP, que Safari no soporta; en iPhone usa la tarjeta HTTPS.
+- **Safari**: el go2rtc integrado de Home Assistant solo admite WebRTC por TCP, que Safari en el navegador puede no soportar; en ese caso la tarjeta LAN **cae sola a HLS**. En la app Companion de iOS, la tarjeta LAN funciona en las pruebas del autor.
+- **WebRTC Camera (AlexxIT) instalado a la vez**: en una instalación se observó que la cámara WebRTC de esta integración no ofrecía WebRTC mientras WebRTC Camera estaba activo; la tarjeta LAN lo detecta y usa HLS. Si quieres WebRTC, prueba a desactivar WebRTC Camera.
 - Se necesita HTTPS para el micrófono.
-- La contraseña del timbre se guarda solo en la configuración de Home Assistant, no en archivos del paquete.
+- La contraseña del timbre se guarda solo en la configuración de Home Assistant, no en archivos del paquete. Está en texto plano en `/config/.storage/core.config_entries` y por tanto también en las copias de seguridad: **cifra tus copias**. Se recomienda crear en el timbre un usuario propio para Home Assistant en vez de usar el administrador.
+- Cualquier usuario de Home Assistant que pueda abrir el panel puede hablar por el timbre.
+- Si añades otra vez un timbre ya configurado, se actualizan su IP, usuario y contraseña.
 
 ## Problemas frecuentes
 
@@ -112,6 +115,9 @@ Video quality (light/high) and keep the video ready (near-instant start). The in
 ## Known limitations
 
 - HLS has a minimum delay of about 3 s; use the LAN card for less delay at home.
-- **iPhone/Safari** cannot use WebRTC with Home Assistant's built-in go2rtc (TCP only): use the HTTPS card.
+- **Safari** in the browser may not support WebRTC with Home Assistant's built-in go2rtc (TCP only); the LAN card then **falls back to HLS automatically**. In the iOS Companion app the LAN card works in the author's tests.
+- With **WebRTC Camera (AlexxIT)** installed at the same time, the WebRTC camera of this integration did not offer WebRTC in one installation; the LAN card detects it and uses HLS. Disable WebRTC Camera if you want WebRTC.
 - HTTPS is required for the microphone.
-- The doorbell password lives only in Home Assistant's config entry, never in the package files.
+- The doorbell password lives only in Home Assistant's config entry, never in the package files. It is stored in plain text in `/config/.storage/core.config_entries` and therefore also in backups: **encrypt your backups**. Creating a dedicated doorbell user for Home Assistant instead of using the admin account is recommended.
+- Any Home Assistant user who can open the dashboard can talk through the doorbell.
+- Adding an already configured doorbell again updates its address, username and password.

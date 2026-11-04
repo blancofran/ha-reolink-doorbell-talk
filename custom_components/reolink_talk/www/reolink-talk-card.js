@@ -2,7 +2,7 @@
 // (micrófono del navegador -> WebSocket de Home Assistant -> timbre). Funciona igual en casa que fuera,
 // en cualquier navegador, sin WebRTC, sin go2rtc y sin abrir puertos.
 // Config: entity (cámara de la integración), view_transport (hls | webrtc), title, mode (toggle|hold), max_seconds, idle_seconds,
-// warn_seconds, timeout, autoplay, show_info (muestra transporte y retraso), max_width, hls_url. (view_entity se acepta como alias de entity.)
+// warn_seconds, timeout, autoplay, show_info (muestra transporte y retraso), view_fallback (false: no caer a HLS si falla WebRTC), max_width, hls_url. (view_entity se acepta como alias de entity.)
 const RT_TEXT = {
   es: {
     talk: 'Hablar al timbre', talking: 'Hablando… toca para terminar', hold: 'Mantén presionado para hablar',
@@ -13,7 +13,7 @@ const RT_TEXT = {
     maxTime: 'Micrófono cerrado: se acabó el tiempo', idle: 'Micrófono cerrado por inactividad',
     videoErr: 'No se pudo cargar el video', closeIn: (s) => `Se cerrará en ${s} s · toca la pantalla para seguir`,
     busy: 'Otro dispositivo está hablando con el timbre', talkFail: 'No se pudo abrir el canal de voz',
-    noRtc: 'No se encontró la cámara WebRTC de esta integración (¿entidad correcta?)', rtcErr: 'WebRTC no conectó (solo funciona en la red local)',
+    rtcErr: 'WebRTC no conectó (solo funciona en la red local)',
   },
   en: {
     talk: 'Talk to the doorbell', talking: 'Talking… tap to stop', hold: 'Hold to talk', holdOn: 'Talking… release to stop',
@@ -24,7 +24,7 @@ const RT_TEXT = {
     idle: 'Microphone closed due to inactivity', videoErr: 'Could not load the video',
     closeIn: (s) => `Closing in ${s} s · tap the screen to keep going`,
     busy: 'Another device is already talking to the doorbell', talkFail: 'Could not open the voice channel',
-    noRtc: 'The WebRTC camera of this integration was not found (is the entity right?)', rtcErr: 'WebRTC could not connect (it only works on the local network)',
+    rtcErr: 'WebRTC could not connect (it only works on the local network)',
   },
 };
 
@@ -58,7 +58,7 @@ class ReolinkTalkCard extends HTMLElement {
     if (!entity) throw new Error('reolink-talk-card: define entity');
     this._c = Object.assign({
       title: 'Timbre', mode: 'toggle', timeout: 12, max_seconds: 90, warn_seconds: 10, idle_seconds: 45,
-      autoplay: true, show_info: false, max_width: 460, hls_url: null, view_transport: 'hls', view_timeout: 6, webrtc_entity: null,
+      autoplay: true, show_info: false, view_fallback: true, max_width: 460, hls_url: null, view_transport: 'hls', view_timeout: 6, webrtc_entity: null,
     }, config, { entity });
     if (!this.shadowRoot) this._build();
     if (this._c.show_info) this.setAttribute('data-info', ''); else this.removeAttribute('data-info');
@@ -250,13 +250,21 @@ class ReolinkTalkCard extends HTMLElement {
   }
 
   // ---------- vídeo: WebRTC (solo red local; el más rápido) ----------
+  // Si WebRTC no está disponible o no conecta, la tarjeta cae sola a HLS (view_fallback: false lo desactiva).
   async _startViewWebrtc() {
     if (this._rtc || this._rtcBusy || !this._hass) return;
     const ent = this._c.webrtc_entity || this._sibling(this._c.entity, 'webrtc');
-    if (!ent) { this._videoMsg(this._t('noRtc')); return; }
+    if (!ent) { this._fallbackHls('no se encontró la cámara WebRTC'); return; }
     this._rtcBusy = true;
     this._videoMsg('');
     try {
+      let caps = null;
+      try { caps = await this._hass.callWS({ type: 'camera/capabilities', entity_id: ent }); } catch (e) { /* se intenta igualmente */ }
+      if (caps && Array.isArray(caps.frontend_stream_types) && !caps.frontend_stream_types.includes('web_rtc')) {
+        this._rtcBusy = false;
+        this._fallbackHls('la cámara no ofrece WebRTC');
+        return;
+      }
       const s = await this._negotiate(ent);
       this._rtc = s;
       this._log('WebRTC negociando');
@@ -268,14 +276,21 @@ class ReolinkTalkCard extends HTMLElement {
         else if (['failed', 'closed', 'disconnected'].includes(st) && this._rtc === s) this._rtcFailed(st);
       };
       s.fbT = setTimeout(() => { if (this._rtc === s && s.pc.connectionState !== 'connected') this._rtcFailed('tiempo'); }, this._c.view_timeout * 1000);
-    } catch (e) { this._rtcFailed(e && e.message ? e.message : 'error'); }
+    } catch (e) { this._rtcBusy = false; this._rtcFailed(e && e.message ? e.message : 'error'); return; }
     this._rtcBusy = false;
   }
 
   _rtcFailed(why) {
     this._log('WebRTC falló: ' + why);
     this._stopRtc();
-    this._videoMsg(this._t('rtcErr') + ' (' + why + ')');
+    this._fallbackHls(why);
+  }
+
+  _fallbackHls(why) {
+    this._log('WebRTC no disponible (' + why + ')');
+    if (this._c.view_fallback === false) { this._videoMsg(this._t('rtcErr') + ' (' + why + ')'); return; }
+    this._tView = performance.now();
+    this._startViewHls();
   }
 
   async _negotiate(entityId) {
