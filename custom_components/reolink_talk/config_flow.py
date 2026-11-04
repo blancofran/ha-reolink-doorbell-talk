@@ -31,10 +31,8 @@ from homeassistant.helpers.selector import (
 from .const import (
     CONF_PRELOAD,
     CONF_QUALITY,
-    CONF_WEBRTC,
     DEFAULT_PRELOAD,
     DEFAULT_QUALITY,
-    DEFAULT_WEBRTC,
     DOMAIN,
     QUALITY_HIGH,
     QUALITY_LIGHT,
@@ -210,7 +208,7 @@ class ReolinkTalkConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class ReolinkTalkOptionsFlow(OptionsFlow):
-    """Options: video quality, keeping the stream ready and the LAN-only WebRTC mode."""
+    """Options: video quality and keeping the stream ready."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -232,9 +230,6 @@ class ReolinkTalkOptionsFlow(OptionsFlow):
                 ),
                 vol.Required(
                     CONF_PRELOAD, default=options.get(CONF_PRELOAD, DEFAULT_PRELOAD)
-                ): bool,
-                vol.Required(
-                    CONF_WEBRTC, default=options.get(CONF_WEBRTC, DEFAULT_WEBRTC)
                 ): bool,
             }
         )

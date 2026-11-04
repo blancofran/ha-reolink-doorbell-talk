@@ -13,7 +13,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 
-from .const import CARD_LAN_URL, CARD_URL, CARD_VERSION, CONF_WEBRTC, DEFAULT_WEBRTC, DOMAIN
+from .const import CARD_LAN_URL, CARD_URL, CARD_VERSION, DOMAIN
 from .websocket import async_register_commands
 
 _LOGGER = logging.getLogger(__name__)
@@ -91,11 +91,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 def _async_remove_legacy_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Remove cameras of earlier versions and the WebRTC camera when it is disabled."""
+    """Remove cameras of earlier versions that no longer exist."""
     registry = er.async_get(hass)
     kinds = ["talk", "remote"]
-    if not entry.options.get(CONF_WEBRTC, DEFAULT_WEBRTC):
-        kinds.append("webrtc")
     for kind in kinds:
         entity_id = registry.async_get_entity_id("camera", DOMAIN, f"{entry.unique_id}_{kind}")
         if entity_id:

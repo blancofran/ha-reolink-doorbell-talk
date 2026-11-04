@@ -54,13 +54,11 @@
         "title": "Doorbell options",
         "data": {
           "quality": "Video quality",
-          "preload": "Keep the video ready",
-          "webrtc": "Enable the WebRTC mode (LAN only)"
+          "preload": "Keep the video ready"
         },
         "data_description": {
           "quality": "Light uses less data (recommended away from home). High shows more detail.",
-          "preload": "Makes the video appear almost instantly, in exchange for a permanent, light connection to the doorbell.",
-          "webrtc": "Creates a second camera for WebRTC viewing: the lowest delay, but it only works inside the local network and not on every device (for example not on iPhone with Home Assistant's built-in go2rtc)."
+          "preload": "Makes the video appear almost instantly, in exchange for a permanent, light connection to the doorbell."
         }
       }
     }

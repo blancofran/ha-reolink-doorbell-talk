@@ -2,7 +2,7 @@
 
 Vídeo, sonido y **voz bidireccional** con un timbre Reolink desde Home Assistant, en un único paquete (integración + tarjetas). Funciona en casa y fuera de casa **sin abrir puertos, sin VPN y sin servicios externos**: todo viaja por la conexión normal de Home Assistant.
 
-> **Estado: beta (0.3.0).** Funciona en las pruebas del autor con un único modelo (Reolink Video Doorbell PoE), pero puede haber errores y cambios entre versiones. Si algo falla, abre una *issue* con los diagnósticos de la integración (con los datos sensibles censurados).
+> **Estado: beta (0.3.1).** Funciona en las pruebas del autor con un único modelo (Reolink Video Doorbell PoE), pero puede haber errores y cambios entre versiones. Si algo falla, abre una *issue* con los diagnósticos de la integración (con los datos sensibles censurados).
 
 *English version below.*
 
@@ -33,7 +33,7 @@ entity: camera.timbre_ver_y_escuchar
 title: Timbre
 ```
 
-Solo en casa, con WebRTC (activa antes la opción *WebRTC* de la integración):
+Solo en casa, con WebRTC (la cámara WebRTC se crea sola):
 
 ```yaml
 type: custom:reolink-talk-lan-card
@@ -44,7 +44,6 @@ entity: camera.timbre_ver_y_escuchar
 
 - **Calidad del vídeo**: ligera (menos datos, recomendada fuera de casa) o alta.
 - **Mantener el vídeo preparado**: el vídeo aparece casi al instante, a cambio de una conexión permanente y ligera con el timbre.
-- **Modo WebRTC (solo en casa)**: crea una segunda cámara para la tarjeta LAN.
 
 También puedes **reconfigurar** (cambiar IP o credenciales) y **reautenticar** (si cambia la contraseña) desde la propia integración, y descargar **diagnósticos** con los datos sensibles censurados.
 
@@ -68,13 +67,13 @@ También puedes **reconfigurar** (cambiar IP o credenciales) y **reautenticar** 
 
 - *"No se pudo abrir el canal de voz"*: otro dispositivo está hablando, o el timbre no acepta una segunda sesión de voz. Reintenta.
 - *"Error de configuración"* en la tarjeta: recarga con Ctrl+Shift+R; comprueba en *Ajustes → Paneles → Recursos* que existen los recursos de `/reolink_talk/`.
-- *Sin vídeo en el modo LAN*: activa *WebRTC* en las opciones y recarga la tarjeta.
+- *Sin vídeo en el modo LAN*: comprueba que la entidad es la del timbre y que el go2rtc integrado de Home Assistant está en marcha; recarga la tarjeta.
 
 ---
 
 # English
 
-> **Status: beta (0.3.0).** It works in the author's tests with a single model (Reolink Video Doorbell PoE), but there may be bugs and changes between versions. If something fails, open an issue and attach the integration diagnostics (sensitive data is redacted).
+> **Status: beta (0.3.1).** It works in the author's tests with a single model (Reolink Video Doorbell PoE), but there may be bugs and changes between versions. If something fails, open an issue and attach the integration diagnostics (sensitive data is redacted).
 
 Video, sound and **two-way voice** with a Reolink doorbell from Home Assistant, in a single package (integration + cards). It works at home and away **without opening ports, VPNs or external services**: everything goes through Home Assistant's normal connection.
 
@@ -104,11 +103,11 @@ type: custom:reolink-talk-card
 entity: camera.doorbell_view_and_listen
 ```
 
-LAN only (enable the *WebRTC* option first): `type: custom:reolink-talk-lan-card` with the same `entity`.
+LAN only: `type: custom:reolink-talk-lan-card` with the same `entity` (the WebRTC camera is created automatically).
 
 ## Options
 
-Video quality (light/high), keep the video ready (near-instant start), and the LAN-only WebRTC mode. The integration also supports reconfigure, re-authentication and redacted diagnostics.
+Video quality (light/high) and keep the video ready (near-instant start). The integration also supports reconfigure, re-authentication and redacted diagnostics.
 
 ## Known limitations
 

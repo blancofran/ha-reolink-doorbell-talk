@@ -54,13 +54,11 @@
         "title": "Opciones del timbre",
         "data": {
           "quality": "Calidad del vídeo",
-          "preload": "Mantener el vídeo preparado",
-          "webrtc": "Activar el modo WebRTC (solo en casa)"
+          "preload": "Mantener el vídeo preparado"
         },
         "data_description": {
           "quality": "Ligera usa menos datos (recomendada fuera de casa). Alta muestra más detalle.",
-          "preload": "Hace que el vídeo aparezca casi al instante, a cambio de una conexión permanente y ligera con el timbre.",
-          "webrtc": "Crea una segunda cámara para ver con WebRTC: el menor retraso, pero solo funciona dentro de la red local y no en todos los dispositivos (por ejemplo, no en iPhone con el go2rtc integrado de Home Assistant)."
+          "preload": "Hace que el vídeo aparezca casi al instante, a cambio de una conexión permanente y ligera con el timbre."
         }
       }
     }

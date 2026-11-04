@@ -13,7 +13,7 @@ const RT_TEXT = {
     maxTime: 'Micrófono cerrado: se acabó el tiempo', idle: 'Micrófono cerrado por inactividad',
     videoErr: 'No se pudo cargar el video', closeIn: (s) => `Se cerrará en ${s} s · toca la pantalla para seguir`,
     busy: 'Otro dispositivo está hablando con el timbre', talkFail: 'No se pudo abrir el canal de voz',
-    noRtc: 'WebRTC no está activado en las opciones de la integración', rtcErr: 'WebRTC no conectó (solo funciona en la red local)',
+    noRtc: 'No se encontró la cámara WebRTC de esta integración (¿entidad correcta?)', rtcErr: 'WebRTC no conectó (solo funciona en la red local)',
   },
   en: {
     talk: 'Talk to the doorbell', talking: 'Talking… tap to stop', hold: 'Hold to talk', holdOn: 'Talking… release to stop',
@@ -24,7 +24,7 @@ const RT_TEXT = {
     idle: 'Microphone closed due to inactivity', videoErr: 'Could not load the video',
     closeIn: (s) => `Closing in ${s} s · tap the screen to keep going`,
     busy: 'Another device is already talking to the doorbell', talkFail: 'Could not open the voice channel',
-    noRtc: 'WebRTC is not enabled in the integration options', rtcErr: 'WebRTC could not connect (it only works on the local network)',
+    noRtc: 'The WebRTC camera of this integration was not found (is the entity right?)', rtcErr: 'WebRTC could not connect (it only works on the local network)',
   },
 };
 
@@ -70,6 +70,13 @@ class ReolinkTalkCard extends HTMLElement {
       this._viewTried = true;
       this._startView();
     }
+  }
+
+  // Valor inicial al añadir la tarjeta desde el selector: la primera cámara de esta integración.
+  static getStubConfig(hass) {
+    const ents = (hass && hass.entities) || {};
+    const found = Object.keys(ents).find((id) => id.startsWith('camera.') && ents[id].platform === 'reolink_talk' && ents[id].translation_key === 'view');
+    return { entity: found || 'camera.timbre_ver_y_escuchar' };
   }
 
   getCardSize() { return 5; }

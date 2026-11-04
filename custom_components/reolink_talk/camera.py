@@ -15,10 +15,8 @@ from homeassistant.helpers.start import async_at_started
 from .const import (
     CONF_PRELOAD,
     CONF_QUALITY,
-    CONF_WEBRTC,
     DEFAULT_PRELOAD,
     DEFAULT_QUALITY,
-    DEFAULT_WEBRTC,
     DOMAIN,
     stream_source,
     webrtc_source,
@@ -32,11 +30,10 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Create the HTTPS camera, and the LAN-only WebRTC camera when it is enabled."""
-    entities = [ReolinkTalkCamera(entry, "view")]
-    if entry.options.get(CONF_WEBRTC, DEFAULT_WEBRTC):
-        entities.append(ReolinkTalkCamera(entry, "webrtc"))
-    async_add_entities(entities)
+    """Create the HTTPS camera and the LAN-only WebRTC camera (idle until a card uses it)."""
+    async_add_entities(
+        [ReolinkTalkCamera(entry, "view"), ReolinkTalkCamera(entry, "webrtc")]
+    )
 
 
 class ReolinkTalkCamera(Camera):
