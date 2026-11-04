@@ -56,16 +56,27 @@ También puedes **reconfigurar** (cambiar IP o credenciales) y **reautenticar** 
 
 Ambas tarjetas tienen editor visual (añade la tarjeta desde el selector de tarjetas, o edítala y desactiva *Mostrar editor de código*). Las opciones en YAML:
 
-`entity` (obligatoria), `title`, `mode` (`toggle` o `hold`, mantener para hablar; `hold_to_talk: true` equivale a `mode: hold` y es lo que escribe el editor visual), `max_seconds` (90), `idle_seconds` (45), `warn_seconds` (10), `timeout` (12), `autoplay` (true), `show_info` (false: muestra en el vídeo el transporte y el retraso, útil para diagnosticar), `view_fallback` (true: la tarjeta LAN cae a HLS si WebRTC no está disponible), `aspect_ratio` (`4:3`; por ejemplo `16:9` o `19:8`), `crop_video` (false: recorta el vídeo para llenar el recuadro en vez de mostrarlo entero), `max_width` (sin límite por defecto), `view_timeout` (6), `hls_url` (por defecto se usa la copia incluida de hls.js).
+| Opción | Por defecto | Qué hace |
+|---|---|---|
+| `entity` | obligatoria | La cámara del timbre de esta integración |
+| `title` | «Timbre» | Título de la tarjeta |
+| `hold_to_talk` | `false` | `true`: hablas solo mientras mantienes pulsado el botón. Si no, tocas para empezar y tocas para terminar |
+| `autoplay` | `true` | Inicia el vídeo al aparecer la tarjeta |
+| `aspect_ratio` | `4:3` | Forma del vídeo, por ejemplo `16:9` |
+| `crop_video` | `false` | `true`: llena el recuadro recortando los bordes, en vez de mostrar la imagen entera |
+| `max_width` | sin límite | Ancho máximo de la tarjeta, en píxeles |
+| `show_info` | `false` | Muestra el retraso sobre el vídeo; útil al reportar un problema |
+| `view_fallback` | `true` | Solo tarjeta LAN: cambia al vídeo normal si el vídeo rápido no conecta |
+| `max_seconds` | `90` | Duración máxima de una conversación |
+| `idle_seconds` | `45` | El micrófono se cierra tras estos segundos de silencio |
+| `warn_seconds` | `10` | Aviso estos segundos antes de que se cierre el micrófono |
+| `timeout` | `12` | Segundos de espera a que el timbre responda al empezar a hablar |
+
+Avanzado: `view_timeout` (segundos de espera del vídeo rápido, 6), `hls_url` (usar tu propia copia de hls.js en vez de la incluida) y `mode: hold` (equivale a `hold_to_talk: true`).
 
 ## Cambiar el tamaño
 
 En los paneles de secciones las tarjetas se pueden redimensionar libremente en modo edición (arrastrando los bordes o con la pestaña *Diseño*): la tarjeta llena el hueco que le des, en ancho y en alto, y el vídeo se adapta. Usa `aspect_ratio` para igualar la forma de tus otras cámaras, `crop_video` para llenar el recuadro sin franjas negras y `max_width` si sí quieres limitar el ancho.
-
-## Cómo funciona
-
-- **Vídeo y sonido**: el timbre ofrece un flujo FLV por HTTP. Home Assistant lo convierte a HLS (`stream`) y la tarjeta lo reproduce con hls.js (incluido). En el modo LAN se usa WebRTC con el go2rtc integrado de Home Assistant.
-- **Voz**: micrófono del navegador → AudioWorklet (8 kHz, G.711 µ-law) → WebSocket de Home Assistant → cliente RTSP con *backchannel* ONVIF → timbre. Un solo dispositivo puede hablar a la vez; la sesión se cierra por tiempo máximo, por inactividad o al pasar la app a segundo plano.
 
 ## Compatibilidad
 
@@ -79,13 +90,19 @@ Dispositivos probados. Los reportes los envían los usuarios; el autor solo tien
 
 ## Limitaciones conocidas
 
-- El HLS tiene un retraso mínimo de unos 3 s (viene de cómo Home Assistant segmenta el vídeo). Para menos retraso en casa usa la tarjeta LAN.
-- **Safari**: el go2rtc integrado de Home Assistant solo admite WebRTC por TCP, que Safari en el navegador puede no soportar; en ese caso la tarjeta LAN **cae sola a HLS**. En las apps Companion de iOS y de Android, las tarjetas funcionan en las pruebas del autor.
-- **WebRTC Camera (AlexxIT) instalado a la vez**: en una instalación se observó que la cámara WebRTC de esta integración no ofrecía WebRTC mientras WebRTC Camera estaba activo; la tarjeta LAN lo detecta y usa HLS. Si quieres WebRTC, prueba a desactivar WebRTC Camera.
-- Se necesita HTTPS para el micrófono.
-- La contraseña del timbre se guarda solo en la configuración de Home Assistant, no en archivos del paquete. Está en texto plano en `/config/.storage/core.config_entries` y por tanto también en las copias de seguridad: **cifra tus copias**. Se recomienda crear en el timbre un usuario propio para Home Assistant en vez de usar el administrador.
-- Por defecto cualquier usuario de Home Assistant que pueda abrir el panel puede hablar por el timbre; activa *Solo los administradores pueden hablar* en las opciones de la integración para restringirlo.
-- Si añades otra vez un timbre ya configurado, se actualizan su IP, usuario y contraseña.
+- La tarjeta principal tiene un retraso de unos 3 segundos. Para menos retraso en casa, usa la tarjeta LAN.
+- En el navegador **Safari** la tarjeta LAN puede no mostrar vídeo; entonces cambia sola al vídeo de la tarjeta principal. Las dos tarjetas funcionan en las apps de Home Assistant para iOS y Android.
+- Si también tienes instalado el complemento **WebRTC Camera** (AlexxIT), la tarjeta LAN puede volver al vídeo normal. Desactiva ese complemento si quieres el menor retraso.
+- Para hablar necesitas abrir Home Assistant por **HTTPS**.
+- La contraseña del timbre se guarda dentro de Home Assistant, nunca en los archivos de este paquete, pero queda en texto plano en la configuración de Home Assistant y por tanto también en tus copias de seguridad: **cifra tus copias**. Es mejor crear un usuario aparte del timbre para Home Assistant que usar el de administrador.
+- Por defecto cualquiera que pueda abrir el panel puede hablar por el timbre. Activa *Solo los administradores pueden hablar* en las opciones de la integración para restringirlo.
+- Añadir un timbre que ya está configurado actualiza su dirección, usuario y contraseña.
+
+## Problemas frecuentes
+
+- *"No se pudo abrir el canal de voz"*: otro dispositivo está hablando, o el timbre no acepta una segunda sesión de voz. Reintenta.
+- *"Error de configuración"* en la tarjeta: recarga con Ctrl+Shift+R; comprueba en *Ajustes → Paneles → Recursos* que existen los recursos de `/reolink_talk/`.
+- *Sin vídeo en la tarjeta LAN*: comprueba que la tarjeta apunta a la cámara del timbre y recarga la página. Si el vídeo rápido no conecta, la tarjeta cambia sola al vídeo normal.
 
 ## Reportar un problema o dar tu opinión
 
@@ -94,12 +111,14 @@ Dispositivos probados. Los reportes los envían los usuarios; el autor solo tien
 - **Preguntas, ideas, «¿funciona con mi timbre?»**: usa [Discussions](https://github.com/blancofran/ha-reolink-doorbell-talk/discussions). Contar que funciona con tu modelo también es muy útil: solo está probado con el Reolink Video Doorbell PoE.
 - **Problemas de seguridad:** mira [SECURITY.md](SECURITY.md) y no abras una issue pública.
 
+## Contribuir
+
+¿Quieres ayudar con el código o las traducciones? Mira [CONTRIBUTING.md](CONTRIBUTING.md) (en inglés).
+
 ## Software de terceros
 
 La tarjeta incluye hls.js (Apache-2.0). Ver [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
 
-## Problemas frecuentes
+## Licencia
 
-- *"No se pudo abrir el canal de voz"*: otro dispositivo está hablando, o el timbre no acepta una segunda sesión de voz. Reintenta.
-- *"Error de configuración"* en la tarjeta: recarga con Ctrl+Shift+R; comprueba en *Ajustes → Paneles → Recursos* que existen los recursos de `/reolink_talk/`.
-- *Sin vídeo en el modo LAN*: comprueba que la entidad es la del timbre y que el go2rtc integrado de Home Assistant está en marcha; recarga la tarjeta.
+MIT

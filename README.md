@@ -56,16 +56,27 @@ You can also **reconfigure** (change the address or credentials) and **re-authen
 
 Both cards have a visual editor (add the card from the card picker, or edit it and switch off *Show code editor*). The options in YAML:
 
-`entity` (required), `title`, `mode` (`toggle`, or `hold` to talk while pressed; `hold_to_talk: true` is the same as `mode: hold` and is what the visual editor writes), `max_seconds` (90), `idle_seconds` (45), `warn_seconds` (10), `timeout` (12), `autoplay` (true), `show_info` (false: shows the transport and delay on the video, useful for troubleshooting), `view_fallback` (true: the LAN card falls back to HLS when WebRTC is unavailable), `aspect_ratio` (`4:3`; for example `16:9` or `19:8`), `crop_video` (false: crop the video to fill the frame instead of showing it whole), `max_width` (no limit by default), `view_timeout` (6), `hls_url` (by default the bundled copy of hls.js is used).
+| Option | Default | What it does |
+|---|---|---|
+| `entity` | required | The doorbell camera of this integration |
+| `title` | "Doorbell" | Title shown on the card |
+| `hold_to_talk` | `false` | `true`: talk only while the button is pressed. Otherwise tap to start and tap to stop |
+| `autoplay` | `true` | Start the video when the card appears |
+| `aspect_ratio` | `4:3` | Shape of the video, for example `16:9` |
+| `crop_video` | `false` | `true`: fill the frame, cropping the edges, instead of showing the whole image |
+| `max_width` | no limit | Maximum width of the card, in pixels |
+| `show_info` | `false` | Shows the delay on the video; useful when reporting a problem |
+| `view_fallback` | `true` | LAN card only: switch to the normal video if the fast video cannot connect |
+| `max_seconds` | `90` | Longest a single conversation can last |
+| `idle_seconds` | `45` | The microphone closes after this many seconds of silence |
+| `warn_seconds` | `10` | Warning shown this many seconds before the microphone closes |
+| `timeout` | `12` | Seconds to wait for the doorbell to answer when you start talking |
+
+Advanced: `view_timeout` (seconds to wait for the fast video, 6), `hls_url` (use your own copy of hls.js instead of the bundled one) and `mode: hold` (same as `hold_to_talk: true`).
 
 ## Resizing
 
 In sections dashboards the cards can be resized freely in edit mode (drag the handles, or use the *Layout* tab): the card fills the space it is given, in width and in height, and the video adapts to it. Use `aspect_ratio` to match the shape of your other cameras, `crop_video` to fill the frame without black bars, and `max_width` if you do want a width limit.
-
-## How it works
-
-- **Video and sound**: the doorbell offers an FLV stream over HTTP. Home Assistant turns it into HLS (`stream`) and the card plays it with hls.js (bundled). The LAN card uses WebRTC through Home Assistant's built-in go2rtc.
-- **Voice**: browser microphone → AudioWorklet (8 kHz, G.711 µ-law) → Home Assistant WebSocket → RTSP client using the ONVIF *backchannel* → doorbell. Only one device can talk at a time; the session ends at the maximum time, when idle, or when the app goes to the background.
 
 ## Compatibility
 
@@ -79,19 +90,19 @@ Tested devices. Reports come from users; the author has only the first one.
 
 ## Known limitations
 
-- HLS has a minimum delay of about 3 s (it comes from how Home Assistant segments the video). For less delay at home use the LAN card.
-- **Safari** in the browser may not support WebRTC with Home Assistant's built-in go2rtc (TCP only); the LAN card then **falls back to HLS automatically**. The cards work in the iOS and Android Companion apps in the author's tests.
-- With **WebRTC Camera (AlexxIT)** installed at the same time, the WebRTC camera of this integration did not offer WebRTC in one installation; the LAN card detects it and uses HLS. Disable WebRTC Camera if you want WebRTC.
-- HTTPS is required for the microphone.
-- The doorbell password lives only in Home Assistant's config entry, never in the package files. It is stored in plain text in `/config/.storage/core.config_entries` and therefore also in backups: **encrypt your backups**. Creating a dedicated doorbell user for Home Assistant instead of using the admin account is recommended.
-- By default any Home Assistant user who can open the dashboard can talk through the doorbell; turn on *Only administrators can talk* in the integration options to restrict it.
-- Adding an already configured doorbell again updates its address, username and password.
+- The main card has a delay of about 3 seconds. For less delay at home, use the LAN card.
+- In the **Safari** browser the LAN card may not show video; it then switches to the main card's video by itself. Both cards work in the iOS and Android Home Assistant apps.
+- If the **WebRTC Camera** add-on (AlexxIT) is also installed, the LAN card may fall back to the normal video. Disable that add-on if you want the lower delay.
+- To talk you need to open Home Assistant over **HTTPS**.
+- The doorbell password is stored inside Home Assistant, never in this package's files, but it is saved in plain text in Home Assistant's own configuration and therefore also in your backups: **encrypt your backups**. It is better to create a separate doorbell user for Home Assistant than to use the admin account.
+- By default anyone who can open the dashboard can talk through the doorbell. Turn on *Only administrators can talk* in the integration options to restrict it.
+- Adding a doorbell that is already configured updates its address, username and password.
 
 ## Troubleshooting
 
 - *"Could not open the voice channel"*: another device is talking, or the doorbell does not accept a second voice session. Try again.
 - *"Configuration error"* on the card: reload with Ctrl+Shift+R and check in *Settings → Dashboards → Resources* that the `/reolink_talk/` resources exist.
-- *No video in the LAN card*: check that the entity is the doorbell's and that Home Assistant's built-in go2rtc is running; reload the card. The card falls back to HLS on its own when WebRTC fails.
+- *No video in the LAN card*: check that the card points to the doorbell's camera and reload the page. If the fast video cannot connect, the card switches to the normal video by itself.
 
 ## Reporting a problem or giving feedback
 
@@ -100,22 +111,9 @@ Tested devices. Reports come from users; the author has only the first one.
 - **Questions, ideas, "does it work with my doorbell?"** Use [Discussions](https://github.com/blancofran/ha-reolink-doorbell-talk/discussions). Telling us that it works with your model is very useful too: it is only tested with the Reolink Video Doorbell PoE.
 - **Security problems:** see [SECURITY.md](SECURITY.md) and do not open a public issue.
 
-## Development
+## Contributing
 
-Tests that need no Home Assistant:
-
-```bash
-python tests/test_standalone.py
-python tests/test_talk.py
-```
-
-Tests of the cards (a simulated browser, needs Node.js 20 or newer):
-
-```bash
-cd tests/js && npm ci && npm test
-```
-
-Tests with Home Assistant (`pytest-homeassistant-custom-component`) run with `pytest -q tests`; the CI installs the requirements with `.github/scripts/ha_requirements.py`.
+Want to help with the code or the translations? See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Third-party software
 
