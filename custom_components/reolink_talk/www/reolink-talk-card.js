@@ -55,7 +55,31 @@ function loadHls(url) {
   return _hlsLoader;
 }
 
+// Texts of the visual editor (the form Home Assistant draws from getConfigForm).
+const RT_EDITOR = {
+  es: {
+    entity: 'Cámara del timbre', title: 'Título', mode: 'Botón de hablar', autoplay: 'Iniciar el vídeo automáticamente',
+    show_info: 'Mostrar el transporte y el retraso en el vídeo', view_fallback: 'Usar HLS si WebRTC no funciona',
+    advanced: 'Opciones avanzadas', max_seconds: 'Duración máxima de la conversación (s)', idle_seconds: 'Cierre por inactividad (s)',
+    warn_seconds: 'Aviso antes de cerrar (s)', timeout: 'Espera máxima de conexión (s)', max_width: 'Ancho máximo (px)',
+    toggle: 'Tocar para empezar y para terminar', hold: 'Mantener pulsado para hablar',
+    entity_h: 'La cámara «Ver y escuchar» creada por la integración.',
+    title_h: 'Si lo dejas vacío se usa «Timbre».',
+  },
+  en: {
+    entity: 'Doorbell camera', title: 'Title', mode: 'Talk button', autoplay: 'Start the video automatically',
+    show_info: 'Show the transport and delay on the video', view_fallback: 'Fall back to HLS if WebRTC does not work',
+    advanced: 'Advanced options', max_seconds: 'Maximum talk time (s)', idle_seconds: 'Close when idle (s)',
+    warn_seconds: 'Warning before closing (s)', timeout: 'Connection timeout (s)', max_width: 'Maximum width (px)',
+    toggle: 'Tap to start and to stop', hold: 'Hold to talk',
+    entity_h: 'The "View and listen" camera created by the integration.',
+    title_h: 'If empty, "Doorbell" is used.',
+  },
+};
+
 class ReolinkTalkCard extends HTMLElement {
+  static isLan = false; // the LAN subclass sets it to true (shows the fallback option in the editor)
+
   setConfig(config) {
     const entity = config && (config.entity || config.view_entity);
     if (!entity) throw new Error('reolink-talk-card: define entity');
@@ -111,6 +135,31 @@ class ReolinkTalkCard extends HTMLElement {
     const ents = (hass && hass.entities) || {};
     const found = Object.keys(ents).find((id) => id.startsWith('camera.') && ents[id].platform === 'reolink_talk' && ents[id].translation_key === 'view');
     return { entity: found || 'camera.doorbell_view_and_listen' };
+  }
+
+  // Visual editor: Home Assistant draws this form (no editor element of our own is needed).
+  static getConfigForm() {
+    const root = document.querySelector('home-assistant');
+    const lang = ((root && root.hass && root.hass.language) || 'en').slice(0, 2);
+    const L = RT_EDITOR[lang] || RT_EDITOR.en;
+    const num = (name, min, max) => ({ name, selector: { number: { min, max, mode: 'box' } } });
+    const schema = [
+      { name: 'entity', required: true, selector: { entity: { filter: { domain: 'camera', integration: 'reolink_talk' } } } },
+      { name: 'title', selector: { text: {} } },
+      { name: 'mode', selector: { select: { mode: 'dropdown', options: [{ value: 'toggle', label: L.toggle }, { value: 'hold', label: L.hold }] } } },
+      { name: 'autoplay', selector: { boolean: {} } },
+      { name: 'show_info', selector: { boolean: {} } },
+    ];
+    if (this.isLan) schema.push({ name: 'view_fallback', selector: { boolean: {} } });
+    schema.push({
+      type: 'expandable', name: 'advanced', title: L.advanced, flatten: true,
+      schema: [num('max_seconds', 5, 600), num('idle_seconds', 5, 600), num('warn_seconds', 1, 60), num('timeout', 3, 60), num('max_width', 240, 1200)],
+    });
+    return {
+      schema,
+      computeLabel: (s) => L[s.name] || s.name,
+      computeHelper: (s) => L[s.name + '_h'] || '',
+    };
   }
 
   getCardSize() { return 5; }

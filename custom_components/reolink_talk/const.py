@@ -15,7 +15,7 @@ DEFAULT_PRELOAD = True
 
 CARD_URL = "/reolink_talk/reolink-talk-card.js"
 CARD_LAN_URL = "/reolink_talk/reolink-talk-lan-card.js"
-CARD_VERSION = "0.3.8"
+CARD_VERSION = "0.3.9"
 
 
 def stream_source(

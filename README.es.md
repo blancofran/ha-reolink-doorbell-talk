@@ -2,7 +2,7 @@
 
 Vídeo, sonido y **voz bidireccional** con un timbre Reolink desde Home Assistant, en un único paquete (integración + tarjetas). Funciona en casa y fuera de casa **sin abrir puertos, sin VPN y sin servicios externos**: todo viaja por la conexión normal de Home Assistant.
 
-> **Estado: beta (0.3.8).** Funciona en las pruebas del autor con un único modelo (Reolink Video Doorbell PoE), pero puede haber errores y cambios entre versiones. Si algo falla, abre una *issue* con los diagnósticos de la integración (con los datos sensibles censurados).
+> **Estado: beta (0.3.9).** Funciona en las pruebas del autor con un único modelo (Reolink Video Doorbell PoE), pero puede haber errores y cambios entre versiones. Si algo falla, abre una *issue* con los diagnósticos de la integración (con los datos sensibles censurados).
 
 [English version](README.md)
 
@@ -52,6 +52,8 @@ Cada minuto la integración comprueba que el timbre responde. Si no responde (ap
 También puedes **reconfigurar** (cambiar IP o credenciales) y **reautenticar** (si cambia la contraseña) desde la propia integración, y descargar **diagnósticos** con los datos sensibles censurados.
 
 ## Opciones de las tarjetas
+
+Ambas tarjetas tienen editor visual (añade la tarjeta desde el selector de tarjetas, o edítala y desactiva *Mostrar editor de código*). Las opciones en YAML:
 
 `entity` (obligatoria), `title`, `mode` (`toggle` o `hold`, mantener para hablar), `max_seconds` (90), `idle_seconds` (45), `warn_seconds` (10), `timeout` (12), `autoplay` (true), `show_info` (false: muestra en el vídeo el transporte y el retraso, útil para diagnosticar), `view_fallback` (true: la tarjeta LAN cae a HLS si WebRTC no está disponible), `max_width` (460), `view_timeout` (6), `hls_url` (por defecto se usa la copia incluida de hls.js).
 

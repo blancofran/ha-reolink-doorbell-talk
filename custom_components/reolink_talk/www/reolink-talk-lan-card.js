@@ -5,6 +5,8 @@
   await customElements.whenDefined('reolink-talk-card');
   const Base = customElements.get('reolink-talk-card');
   class ReolinkTalkLanCard extends Base {
+    static isLan = true;
+
     setConfig(config) {
       this._lan = true; // default title "Doorbell (LAN)"
       super.setConfig(Object.assign({}, config, { view_transport: 'webrtc' }));
