@@ -2,7 +2,7 @@
 
 Live video, sound and **two-way voice** with a Reolink doorbell from Home Assistant, in a single package (integration + cards). It works at home and away **without opening ports, VPNs or external services**: everything goes through Home Assistant's normal connection.
 
-> **Status: beta (0.3.10).** It works in the author's tests with a single model (Reolink Video Doorbell PoE), but there may be bugs and changes between versions. If something fails, open an issue and attach the integration diagnostics (sensitive data is redacted).
+> **Status: beta (0.3.11).** It works in the author's tests with a single model (Reolink Video Doorbell PoE), but there may be bugs and changes between versions. If something fails, open an issue and attach the integration diagnostics (sensitive data is redacted).
 
 [Versión en español](README.es.md)
 
@@ -55,7 +55,7 @@ You can also **reconfigure** (change the address or credentials) and **re-authen
 
 Both cards have a visual editor (add the card from the card picker, or edit it and switch off *Show code editor*). The options in YAML:
 
-`entity` (required), `title`, `mode` (`toggle`, or `hold` to talk while pressed), `max_seconds` (90), `idle_seconds` (45), `warn_seconds` (10), `timeout` (12), `autoplay` (true), `show_info` (false: shows the transport and delay on the video, useful for troubleshooting), `view_fallback` (true: the LAN card falls back to HLS when WebRTC is unavailable), `max_width` (460), `view_timeout` (6), `hls_url` (by default the bundled copy of hls.js is used).
+`entity` (required), `title`, `mode` (`toggle`, or `hold` to talk while pressed; `hold_to_talk: true` is the same as `mode: hold` and is what the visual editor writes), `max_seconds` (90), `idle_seconds` (45), `warn_seconds` (10), `timeout` (12), `autoplay` (true), `show_info` (false: shows the transport and delay on the video, useful for troubleshooting), `view_fallback` (true: the LAN card falls back to HLS when WebRTC is unavailable), `max_width` (460), `view_timeout` (6), `hls_url` (by default the bundled copy of hls.js is used).
 
 ## How it works
 

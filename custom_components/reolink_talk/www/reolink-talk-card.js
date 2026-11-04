@@ -1,7 +1,7 @@
 // reolink-talk-card: doorbell video and sound (Home Assistant HLS, over HTTPS) and a talk button
 // (browser microphone -> Home Assistant WebSocket -> doorbell). It works the same at home and away,
 // in any browser, without WebRTC, go2rtc or open ports.
-// Config: entity (the integration's camera), view_transport (hls | webrtc), title, mode (toggle|hold), max_seconds, idle_seconds,
+// Config: entity (the integration's camera), view_transport (hls | webrtc), title, mode (toggle|hold) or hold_to_talk, max_seconds, idle_seconds,
 // warn_seconds, timeout, autoplay, show_info (show transport and delay), view_fallback (false: do not fall back to HLS when
 // WebRTC fails), max_width, hls_url. (view_entity is accepted as an alias of entity.)
 const RT_TEXT = {
@@ -58,20 +58,20 @@ function loadHls(url) {
 // Texts of the visual editor (the form Home Assistant draws from getConfigForm).
 const RT_EDITOR = {
   es: {
-    entity: 'Cámara del timbre', title: 'Título', mode: 'Botón de hablar', autoplay: 'Iniciar el vídeo automáticamente',
+    entity: 'Cámara del timbre', title: 'Título', hold_to_talk: 'Mantener pulsado para hablar', autoplay: 'Iniciar el vídeo automáticamente',
     show_info: 'Mostrar el transporte y el retraso en el vídeo', view_fallback: 'Usar HLS si WebRTC no funciona',
     advanced: 'Opciones avanzadas', max_seconds: 'Duración máxima de la conversación (s)', idle_seconds: 'Cierre por inactividad (s)',
     warn_seconds: 'Aviso antes de cerrar (s)', timeout: 'Espera máxima de conexión (s)', max_width: 'Ancho máximo (px)',
-    toggle: 'Tocar para empezar y para terminar', hold: 'Mantener pulsado para hablar',
+    hold_to_talk_h: 'Si lo desactivas, se toca una vez para empezar y otra para terminar.',
     entity_h: 'La cámara «Ver y escuchar» creada por la integración.',
     title_h: 'Si lo dejas vacío se usa «Timbre».',
   },
   en: {
-    entity: 'Doorbell camera', title: 'Title', mode: 'Talk button', autoplay: 'Start the video automatically',
+    entity: 'Doorbell camera', title: 'Title', hold_to_talk: 'Hold to talk', autoplay: 'Start the video automatically',
     show_info: 'Show the transport and delay on the video', view_fallback: 'Fall back to HLS if WebRTC does not work',
     advanced: 'Advanced options', max_seconds: 'Maximum talk time (s)', idle_seconds: 'Close when idle (s)',
     warn_seconds: 'Warning before closing (s)', timeout: 'Connection timeout (s)', max_width: 'Maximum width (px)',
-    toggle: 'Tap to start and to stop', hold: 'Hold to talk',
+    hold_to_talk_h: 'If off, tap once to start and once to stop.',
     entity_h: 'The "View and listen" camera created by the integration.',
     title_h: 'If empty, "Doorbell" is used.',
   },
@@ -87,6 +87,7 @@ class ReolinkTalkCard extends HTMLElement {
       title: null, mode: 'toggle', timeout: 12, max_seconds: 90, warn_seconds: 10, idle_seconds: 45,
       autoplay: true, show_info: false, view_fallback: true, max_width: 460, hls_url: null, view_transport: 'hls', view_timeout: 6, webrtc_entity: null,
     }, config, { entity });
+    if (config.hold_to_talk) this._c.mode = 'hold'; // the visual editor's switch for mode: hold
     if (!this.shadowRoot) this._build();
     this._updateTitle();
     if (this._c.show_info) this.setAttribute('data-info', ''); else this.removeAttribute('data-info');
@@ -147,7 +148,7 @@ class ReolinkTalkCard extends HTMLElement {
     const schema = [
       { name: 'entity', required: true, selector: { entity: { filter: { domain: 'camera', integration: 'reolink_talk' } } } },
       { name: 'title', selector: { text: {} } },
-      { name: 'mode', default: 'toggle', selector: { select: { mode: 'dropdown', options: [{ value: 'toggle', label: L.toggle }, { value: 'hold', label: L.hold }] } } },
+      { name: 'hold_to_talk', default: false, selector: { boolean: {} } },
       { name: 'autoplay', default: true, selector: { boolean: {} } },
       { name: 'show_info', default: false, selector: { boolean: {} } },
     ];
