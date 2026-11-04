@@ -142,18 +142,19 @@ class ReolinkTalkCard extends HTMLElement {
     const root = document.querySelector('home-assistant');
     const lang = ((root && root.hass && root.hass.language) || 'en').slice(0, 2);
     const L = RT_EDITOR[lang] || RT_EDITOR.en;
-    const num = (name, min, max) => ({ name, selector: { number: { min, max, mode: 'box' } } });
+    // `default` makes the form show the value the card really uses when the option is not in the YAML.
+    const num = (name, min, max, def) => ({ name, default: def, selector: { number: { min, max, mode: 'box' } } });
     const schema = [
       { name: 'entity', required: true, selector: { entity: { filter: { domain: 'camera', integration: 'reolink_talk' } } } },
       { name: 'title', selector: { text: {} } },
-      { name: 'mode', selector: { select: { mode: 'dropdown', options: [{ value: 'toggle', label: L.toggle }, { value: 'hold', label: L.hold }] } } },
-      { name: 'autoplay', selector: { boolean: {} } },
-      { name: 'show_info', selector: { boolean: {} } },
+      { name: 'mode', default: 'toggle', selector: { select: { mode: 'dropdown', options: [{ value: 'toggle', label: L.toggle }, { value: 'hold', label: L.hold }] } } },
+      { name: 'autoplay', default: true, selector: { boolean: {} } },
+      { name: 'show_info', default: false, selector: { boolean: {} } },
     ];
-    if (this.isLan) schema.push({ name: 'view_fallback', selector: { boolean: {} } });
+    if (this.isLan) schema.push({ name: 'view_fallback', default: true, selector: { boolean: {} } });
     schema.push({
       type: 'expandable', name: 'advanced', title: L.advanced, flatten: true,
-      schema: [num('max_seconds', 5, 600), num('idle_seconds', 5, 600), num('warn_seconds', 1, 60), num('timeout', 3, 60), num('max_width', 240, 1200)],
+      schema: [num('max_seconds', 5, 600, 90), num('idle_seconds', 5, 600, 45), num('warn_seconds', 1, 60, 10), num('timeout', 3, 60, 12), num('max_width', 240, 1200, 460)],
     });
     return {
       schema,
