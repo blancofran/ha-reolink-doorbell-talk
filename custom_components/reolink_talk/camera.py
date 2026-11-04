@@ -55,7 +55,9 @@ class ReolinkTalkCamera(CoordinatorEntity[ReolinkTalkCoordinator], Camera):
         self, coordinator: ReolinkTalkCoordinator, entry: ConfigEntry, kind: str
     ) -> None:
         """Initialise the entity (kind is "view" for HTTPS or "webrtc" for LAN only)."""
-        super().__init__(coordinator)
+        # CoordinatorEntity does not chain to Camera.__init__, so call both explicitly.
+        CoordinatorEntity.__init__(self, coordinator)
+        Camera.__init__(self)
         self._entry = entry
         self._kind = kind
         self._attr_translation_key = kind
