@@ -137,8 +137,9 @@ class ReolinkTalkCard extends HTMLElement {
     const off = this._isOffline();
     if (off !== !!this._offline) {
       this._offline = off;
-      if (off) { this._stopView(); this._videoMsg(this._t('offline')); }
+      if (off) { if (this._talk) this._stop(); this._stopView(); this._videoMsg(this._t('offline')); }
       else { this._videoMsg(''); this._viewTried = false; }
+      this._syncTalkButton();
     }
     if (this._c && this._c.autoplay && !this._viewTried && !off && this.isConnected) {
       this._viewTried = true;
@@ -249,6 +250,7 @@ class ReolinkTalkCard extends HTMLElement {
         #b.off { background: #2f6fe4; } #b.connecting { background: #b7791f; }
         #b.on { background: #d93025; animation: pulse 1.4s ease-in-out infinite; } #b.error { background: #5f6673; }
         @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(217,48,37,.55); } 50% { box-shadow: 0 0 0 10px rgba(217,48,37,0); } }
+        #b:disabled { background: #5f6673; opacity: .5; cursor: not-allowed; animation: none; }
         #b ha-icon { --mdc-icon-size: 28px; }
         .msg { flex: none; min-height: 16px; font-size: 13px; text-align: center; color: rgba(255,255,255,0.75); }
       </style>
@@ -281,6 +283,13 @@ class ReolinkTalkCard extends HTMLElement {
       b.addEventListener('click', () => (this._talk ? this._stop() : this._start()));
     }
     this._refreshSound();
+    if (this._offline) { this._videoMsg(this._t('offline')); this._syncTalkButton(); }
+  }
+
+  // The talk button is disabled while the doorbell does not answer.
+  _syncTalkButton() {
+    const b = this.shadowRoot && this.shadowRoot.getElementById('b');
+    if (b) b.disabled = !!this._offline;
   }
 
   _refreshSound() {
