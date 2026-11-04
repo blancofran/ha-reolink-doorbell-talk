@@ -59,7 +59,7 @@ También puedes **reconfigurar** (cambiar IP o credenciales) y **reautenticar** 
 ## Limitaciones conocidas
 
 - El HLS tiene un retraso mínimo de unos 3 s (viene de cómo Home Assistant segmenta el vídeo). Para menos retraso en casa usa la tarjeta LAN.
-- **Safari**: el go2rtc integrado de Home Assistant solo admite WebRTC por TCP, que Safari en el navegador puede no soportar; en ese caso la tarjeta LAN **cae sola a HLS**. En la app Companion de iOS, la tarjeta LAN funciona en las pruebas del autor.
+- **Safari**: el go2rtc integrado de Home Assistant solo admite WebRTC por TCP, que Safari en el navegador puede no soportar; en ese caso la tarjeta LAN **cae sola a HLS**. En las apps Companion de iOS y de Android, las tarjetas funcionan en las pruebas del autor.
 - **WebRTC Camera (AlexxIT) instalado a la vez**: en una instalación se observó que la cámara WebRTC de esta integración no ofrecía WebRTC mientras WebRTC Camera estaba activo; la tarjeta LAN lo detecta y usa HLS. Si quieres WebRTC, prueba a desactivar WebRTC Camera.
 - Se necesita HTTPS para el micrófono.
 - La contraseña del timbre se guarda solo en la configuración de Home Assistant, no en archivos del paquete. Está en texto plano en `/config/.storage/core.config_entries` y por tanto también en las copias de seguridad: **cifra tus copias**. Se recomienda crear en el timbre un usuario propio para Home Assistant en vez de usar el administrador.
@@ -115,7 +115,7 @@ Video quality (light/high) and keep the video ready (near-instant start). The in
 ## Known limitations
 
 - HLS has a minimum delay of about 3 s; use the LAN card for less delay at home.
-- **Safari** in the browser may not support WebRTC with Home Assistant's built-in go2rtc (TCP only); the LAN card then **falls back to HLS automatically**. In the iOS Companion app the LAN card works in the author's tests.
+- **Safari** in the browser may not support WebRTC with Home Assistant's built-in go2rtc (TCP only); the LAN card then **falls back to HLS automatically**. The cards work in the iOS and Android Companion apps in the author's tests.
 - With **WebRTC Camera (AlexxIT)** installed at the same time, the WebRTC camera of this integration did not offer WebRTC in one installation; the LAN card detects it and uses HLS. Disable WebRTC Camera if you want WebRTC.
 - HTTPS is required for the microphone.
 - The doorbell password lives only in Home Assistant's config entry, never in the package files. It is stored in plain text in `/config/.storage/core.config_entries` and therefore also in backups: **encrypt your backups**. Creating a dedicated doorbell user for Home Assistant instead of using the admin account is recommended.
