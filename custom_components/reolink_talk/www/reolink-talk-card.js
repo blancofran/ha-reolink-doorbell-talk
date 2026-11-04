@@ -81,8 +81,18 @@ class ReolinkTalkCard extends HTMLElement {
     return !!st && st.state === 'unavailable';
   }
 
+  // Repaints every visible text once the language is known (the texts are first drawn before hass arrives).
+  _refreshTexts() {
+    if (!this.shadowRoot || !this._c) return;
+    this._set(this._state || 'off');
+    this._refreshSound();
+    this._updateTitle();
+  }
+
   set hass(hass) {
     this._hass = hass;
+    const lang = (hass && hass.language) || 'en';
+    if (lang !== this._lang) { this._lang = lang; this._refreshTexts(); }
     this._updateTitle();
     const off = this._isOffline();
     if (off !== !!this._offline) {
