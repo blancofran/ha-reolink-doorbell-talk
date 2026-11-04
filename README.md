@@ -109,6 +109,14 @@ python tests/test_standalone.py
 python tests/test_talk.py
 ```
 
+Tests of the cards (a simulated browser, needs Node.js 20 or newer):
+
+```bash
+cd tests/js && npm ci && npm test
+```
+
+Tests with Home Assistant (`pytest-homeassistant-custom-component`) run with `pytest -q tests`; the CI installs the requirements with `.github/scripts/ha_requirements.py`.
+
 ## Third-party software
 
 The card bundles hls.js (Apache-2.0). See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).

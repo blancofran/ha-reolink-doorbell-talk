@@ -34,6 +34,19 @@ jobs:
       - run: python tests/test_standalone.py
       - run: python tests/test_talk.py
 
+  card-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Test the cards in a simulated browser
+        working-directory: tests/js
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+
   ha-tests:
     runs-on: ubuntu-latest
     steps:
