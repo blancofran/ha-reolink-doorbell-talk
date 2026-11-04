@@ -3,7 +3,7 @@
 // in any browser, without WebRTC, go2rtc or open ports.
 // Config: entity (the integration's camera), view_transport (hls | webrtc), title, mode (toggle|hold) or hold_to_talk, max_seconds, idle_seconds,
 // warn_seconds, timeout, autoplay, show_info (show transport and delay), view_fallback (false: do not fall back to HLS when
-// WebRTC fails), max_width, hls_url. (view_entity is accepted as an alias of entity.)
+// WebRTC fails), aspect_ratio (e.g. 4:3), crop_video, max_width (none by default), hls_url. (view_entity is accepted as an alias of entity.)
 const RT_TEXT = {
   es: {
     talk: 'Hablar al timbre', talking: 'Hablando… toca para terminar', hold: 'Mantén presionado para hablar',
@@ -59,18 +59,22 @@ function loadHls(url) {
 const RT_EDITOR = {
   es: {
     entity: 'Cámara del timbre', title: 'Título', hold_to_talk: 'Mantener pulsado para hablar', autoplay: 'Iniciar el vídeo automáticamente',
-    show_info: 'Mostrar el transporte y el retraso en el vídeo', view_fallback: 'Usar HLS si WebRTC no funciona',
+    aspect_ratio: 'Proporción del vídeo', crop_video: 'Recortar el vídeo para llenar el recuadro', show_info: 'Mostrar el transporte y el retraso en el vídeo', view_fallback: 'Usar HLS si WebRTC no funciona',
     advanced: 'Opciones avanzadas', max_seconds: 'Duración máxima de la conversación (s)', idle_seconds: 'Cierre por inactividad (s)',
     warn_seconds: 'Aviso antes de cerrar (s)', timeout: 'Espera máxima de conexión (s)', max_width: 'Ancho máximo (px)',
+    aspect_ratio_h: 'Por ejemplo 4:3, 16:9 o 19:8. Con una altura fija, el vídeo se ajusta al hueco.',
+    max_width_h: 'Vacío = sin límite: la tarjeta ocupa todo el ancho que le des.',
     hold_to_talk_h: 'Si lo desactivas, se toca una vez para empezar y otra para terminar.',
     entity_h: 'La cámara «Ver y escuchar» creada por la integración.',
     title_h: 'Si lo dejas vacío se usa «Timbre».',
   },
   en: {
     entity: 'Doorbell camera', title: 'Title', hold_to_talk: 'Hold to talk', autoplay: 'Start the video automatically',
-    show_info: 'Show the transport and delay on the video', view_fallback: 'Fall back to HLS if WebRTC does not work',
+    aspect_ratio: 'Video aspect ratio', crop_video: 'Crop the video to fill the frame', show_info: 'Show the transport and delay on the video', view_fallback: 'Fall back to HLS if WebRTC does not work',
     advanced: 'Advanced options', max_seconds: 'Maximum talk time (s)', idle_seconds: 'Close when idle (s)',
     warn_seconds: 'Warning before closing (s)', timeout: 'Connection timeout (s)', max_width: 'Maximum width (px)',
+    aspect_ratio_h: 'For example 4:3, 16:9 or 19:8. With a fixed height, the video fits the space.',
+    max_width_h: 'Empty = no limit: the card takes all the width you give it.',
     hold_to_talk_h: 'If off, tap once to start and once to stop.',
     entity_h: 'The "View and listen" camera created by the integration.',
     title_h: 'If empty, "Doorbell" is used.',
@@ -85,13 +89,24 @@ class ReolinkTalkCard extends HTMLElement {
     if (!entity) throw new Error('reolink-talk-card: define entity');
     this._c = Object.assign({
       title: null, mode: 'toggle', timeout: 12, max_seconds: 90, warn_seconds: 10, idle_seconds: 45,
-      autoplay: true, show_info: false, view_fallback: true, max_width: 460, hls_url: null, view_transport: 'hls', view_timeout: 6, webrtc_entity: null,
+      autoplay: true, show_info: false, view_fallback: true, max_width: null, aspect_ratio: '4:3', crop_video: false, hls_url: null, view_transport: 'hls', view_timeout: 6, webrtc_entity: null,
     }, config, { entity });
     if (config.hold_to_talk) this._c.mode = 'hold'; // the visual editor's switch for mode: hold
     if (!this.shadowRoot) this._build();
+    this._applyLayout();
     this._updateTitle();
     if (this._c.show_info) this.setAttribute('data-info', ''); else this.removeAttribute('data-info');
     this._set(this._state || 'off');
+  }
+
+  // Layout options -> CSS variables on the host (so editing the config in the editor updates the card).
+  _applyLayout() {
+    const c = this._c, m = String(c.aspect_ratio || '').trim().match(/^(\d+(?:\.\d+)?)\s*[:/]\s*(\d+(?:\.\d+)?)$/);
+    const ratio = m ? m[1] + ' / ' + m[2] : (Number(c.aspect_ratio) > 0 ? String(Number(c.aspect_ratio)) : '4 / 3');
+    this.style.setProperty('--rt-aspect', ratio);
+    this.style.setProperty('--rt-fit', c.crop_video ? 'cover' : 'contain');
+    if (Number(c.max_width) > 0) this.style.setProperty('--rt-max-width', Number(c.max_width) + 'px');
+    else this.style.removeProperty('--rt-max-width');
   }
 
   // The title the user set, or a default in the Home Assistant language.
@@ -150,12 +165,14 @@ class ReolinkTalkCard extends HTMLElement {
       { name: 'title', selector: { text: {} } },
       { name: 'hold_to_talk', default: false, selector: { boolean: {} } },
       { name: 'autoplay', default: true, selector: { boolean: {} } },
+      { name: 'aspect_ratio', default: '4:3', selector: { text: {} } },
+      { name: 'crop_video', default: false, selector: { boolean: {} } },
       { name: 'show_info', default: false, selector: { boolean: {} } },
     ];
     if (this.isLan) schema.push({ name: 'view_fallback', default: true, selector: { boolean: {} } });
     schema.push({
       type: 'expandable', name: 'advanced', title: L.advanced, flatten: true,
-      schema: [num('max_seconds', 5, 600, 90), num('idle_seconds', 5, 600, 45), num('warn_seconds', 1, 60, 10), num('timeout', 3, 60, 12), num('max_width', 240, 1200, 460)],
+      schema: [num('max_seconds', 5, 600, 90), num('idle_seconds', 5, 600, 45), num('warn_seconds', 1, 60, 10), num('timeout', 3, 60, 12), num('max_width', 240, 2000)],
     });
     return {
       schema,
@@ -165,7 +182,8 @@ class ReolinkTalkCard extends HTMLElement {
   }
 
   getCardSize() { return 5; }
-  getGridOptions() { return { columns: 12, rows: 'auto', min_columns: 6 }; }
+  // Numeric rows let Home Assistant offer the vertical resize handle; the card fills the cell it is given.
+  getGridOptions() { return { columns: 12, rows: 9, min_columns: 4, min_rows: 4 }; }
 
   _t(k, ...a) {
     const lang = ((this._hass && this._hass.language) || 'en').slice(0, 2);
@@ -203,17 +221,18 @@ class ReolinkTalkCard extends HTMLElement {
     const r = this.attachShadow({ mode: 'open' });
     r.innerHTML = `
       <style>
-        :host { display: block; }
-        .card { display: flex; flex-direction: column; gap: 10px; padding: 14px; color: #fff; box-sizing: border-box;
+        :host { display: block; height: 100%; }
+        .card { display: flex; height: 100%; flex-direction: column; gap: 10px; padding: 14px; color: #fff; box-sizing: border-box;
           background: linear-gradient(160deg, #071d4d 0%, #0a3a94 100%); border-radius: 22px;
           border: 1px solid rgba(45,226,255,0.35); box-shadow: 0 0 24px rgba(45,226,255,0.18);
-          margin: 0 auto; width: 100%; max-width: ${this._c.max_width}px;
+          margin: 0 auto; width: 100%; max-width: var(--rt-max-width, none);
           font-family: -apple-system, BlinkMacSystemFont, Roboto, "Segoe UI", sans-serif; }
-        .head { display: flex; align-items: center; gap: 10px; }
+        .head { display: flex; align-items: center; gap: 10px; flex: none; }
         .head ha-icon { --mdc-icon-size: 24px; color: #2de2ff; }
         .title { font-size: 18px; font-weight: 600; }
-        .vwrap { position: relative; border-radius: 14px; overflow: hidden; background: #000; aspect-ratio: 4 / 3; }
-        video { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .vwrap { position: relative; border-radius: 14px; overflow: hidden; background: #000;
+          flex: 1 1 auto; min-height: 0; aspect-ratio: var(--rt-aspect, 4 / 3); }
+        video { width: 100%; height: 100%; object-fit: var(--rt-fit, contain); display: block; }
         #snd { position: absolute; right: 8px; bottom: 8px; border: 0; border-radius: 999px; padding: 6px 12px;
           background: rgba(0,0,0,.55); color: #fff; font-size: 13px; cursor: pointer; display: flex; gap: 6px; align-items: center; }
         #snd ha-icon { --mdc-icon-size: 18px; }
@@ -223,7 +242,7 @@ class ReolinkTalkCard extends HTMLElement {
         :host(:not([data-info])) #tr { display: none; }
         #vmsg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
           text-align: center; padding: 12px; font-size: 14px; color: rgba(255,255,255,.85); pointer-events: none; }
-        #b { width: 100%; min-height: 60px; border: 0; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+        #b { width: 100%; min-height: 60px; flex: none; border: 0; border-radius: 14px; display: flex; align-items: center; justify-content: center;
           gap: 10px; padding: 10px 16px; font: 600 18px/1.2 -apple-system, BlinkMacSystemFont, Roboto, "Segoe UI", sans-serif;
           color: #fff; cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
           touch-action: manipulation; transition: background-color .2s ease; }
@@ -231,7 +250,7 @@ class ReolinkTalkCard extends HTMLElement {
         #b.on { background: #d93025; animation: pulse 1.4s ease-in-out infinite; } #b.error { background: #5f6673; }
         @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(217,48,37,.55); } 50% { box-shadow: 0 0 0 10px rgba(217,48,37,0); } }
         #b ha-icon { --mdc-icon-size: 28px; }
-        .msg { min-height: 16px; font-size: 13px; text-align: center; color: rgba(255,255,255,0.75); }
+        .msg { flex: none; min-height: 16px; font-size: 13px; text-align: center; color: rgba(255,255,255,0.75); }
       </style>
       <div class="card">
         <div class="head"><ha-icon icon="mdi:doorbell-video"></ha-icon><div class="title" id="ttl"></div></div>
