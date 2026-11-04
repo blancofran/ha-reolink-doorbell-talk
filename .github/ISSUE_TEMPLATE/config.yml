@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or idea (Discussions)
+    url: https://github.com/blancofran/ha-reolink-doorbell-talk/discussions
+    about: Ask how to use it, check whether your doorbell model works, share feedback or ideas.
+  - name: Troubleshooting guide (README)
+    url: https://github.com/blancofran/ha-reolink-doorbell-talk#troubleshooting
+    about: Common problems and their fixes. Please read it before opening a bug report.

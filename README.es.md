@@ -77,6 +77,13 @@ En los paneles de secciones las tarjetas se pueden redimensionar libremente en m
 - Por defecto cualquier usuario de Home Assistant que pueda abrir el panel puede hablar por el timbre; activa *Solo los administradores pueden hablar* en las opciones de la integración para restringirlo.
 - Si añades otra vez un timbre ya configurado, se actualizan su IP, usuario y contraseña.
 
+## Reportar un problema o dar tu opinión
+
+- **¿Algo no funciona?** [Abre una issue](https://github.com/blancofran/ha-reolink-doorbell-talk/issues/new/choose) y elige *Bug report*. El formulario pide lo necesario: versiones de la integración y de Home Assistant, modelo y firmware del timbre, qué tarjeta, dónde la usas y qué pasó (está en inglés).
+- **Adjunta los diagnósticos.** *Ajustes → Dispositivos y servicios → Reolink Doorbell Talk → ⋮ → Descargar diagnósticos*, y arrastra el archivo a la issue. Contraseñas, usuarios, direcciones y números de serie salen ocultos. Si es un problema de la tarjeta, copia también las líneas de la consola del navegador que empiezan por `[reolink-talk]` (activa `show_info: true` en la tarjeta para ver el transporte y el retraso sobre el vídeo).
+- **Preguntas, ideas, «¿funciona con mi timbre?»**: usa [Discussions](https://github.com/blancofran/ha-reolink-doorbell-talk/discussions). Contar que funciona con tu modelo también es muy útil: solo está probado con el Reolink Video Doorbell PoE.
+- **Problemas de seguridad:** mira [SECURITY.md](SECURITY.md) y no abras una issue pública.
+
 ## Software de terceros
 
 La tarjeta incluye hls.js (Apache-2.0). Ver [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).

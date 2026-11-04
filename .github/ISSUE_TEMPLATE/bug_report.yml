@@ -1,0 +1,127 @@
+name: Bug report
+description: Something does not work as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping to improve the project! The more of this form you fill in, the faster it can be fixed.
+
+        **Do not paste passwords, public URLs or IP addresses.** The diagnostics file already hides the sensitive data.
+  - type: input
+    id: integration_version
+    attributes:
+      label: Integration version
+      description: HACS → Reolink Doorbell Talk (for example `v0.5.0`).
+    validations:
+      required: true
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      description: Settings → About (for example `2026.10.4`).
+    validations:
+      required: true
+  - type: input
+    id: doorbell
+    attributes:
+      label: Doorbell model and firmware
+      description: For example `Reolink Video Doorbell PoE, firmware v3.0.0.7106`. It is only tested with that model, so this matters.
+    validations:
+      required: true
+  - type: dropdown
+    id: card
+    attributes:
+      label: Which card?
+      options:
+        - WAN card (custom:reolink-talk-card)
+        - LAN card (custom:reolink-talk-lan-card)
+        - Both
+        - Not a card problem (setup, options, cameras...)
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: What fails?
+      options:
+        - Video
+        - Sound from the doorbell
+        - Talking (microphone to the doorbell)
+        - Setup / reconfigure / options
+        - Doorbell shown as unavailable
+        - Layout / resizing / editor
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: client
+    attributes:
+      label: Where do you use it?
+      options:
+        - Chrome / Edge (desktop)
+        - Safari (Mac)
+        - Firefox
+        - iOS Companion app
+        - Android Companion app
+        - Safari on iPhone / iPad (browser)
+        - Chrome on Android (browser)
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: network
+    attributes:
+      label: From where?
+      options:
+        - At home (local network)
+        - Away from home (remote access)
+        - Both
+    validations:
+      required: true
+  - type: dropdown
+    id: https
+    attributes:
+      label: Do you open Home Assistant over HTTPS?
+      description: The browser only allows the microphone over HTTPS.
+      options:
+        - "Yes"
+        - "No"
+        - I am not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened?
+      description: What you did, what you saw (a screenshot helps).
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: |
+        Settings → Devices & services → Reolink Doorbell Talk → ⋮ → **Download diagnostics**.
+        Drag the file into this box. Passwords, usernames, IP addresses and serial numbers are redacted.
+      placeholder: Drop the diagnostics file here
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and browser console (optional)
+      description: |
+        Lines from Settings → System → Logs that mention `reolink_talk`, and, for card problems, the browser console lines that start with `[reolink-talk]`.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before sending
+      options:
+        - label: I searched the existing issues and read the troubleshooting section of the README.
+          required: true
+        - label: I removed passwords and public addresses from everything I pasted.
+          required: true

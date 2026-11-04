@@ -83,6 +83,13 @@ In sections dashboards the cards can be resized freely in edit mode (drag the ha
 - *"Configuration error"* on the card: reload with Ctrl+Shift+R and check in *Settings → Dashboards → Resources* that the `/reolink_talk/` resources exist.
 - *No video in the LAN card*: check that the entity is the doorbell's and that Home Assistant's built-in go2rtc is running; reload the card. The card falls back to HLS on its own when WebRTC fails.
 
+## Reporting a problem or giving feedback
+
+- **Something does not work?** [Open an issue](https://github.com/blancofran/ha-reolink-doorbell-talk/issues/new/choose) and choose *Bug report*. The form asks for what is needed: integration and Home Assistant versions, doorbell model and firmware, which card, where you use it, and what happened.
+- **Attach the diagnostics.** *Settings → Devices & services → Reolink Doorbell Talk → ⋮ → Download diagnostics*, then drag the file into the issue. Passwords, usernames, addresses and serial numbers are hidden. For card problems, also copy the browser console lines that start with `[reolink-talk]` (turn on `show_info: true` in the card to see the transport and delay on the video).
+- **Questions, ideas, "does it work with my doorbell?"** Use [Discussions](https://github.com/blancofran/ha-reolink-doorbell-talk/discussions). Telling us that it works with your model is very useful too: it is only tested with the Reolink Video Doorbell PoE.
+- **Security problems:** see [SECURITY.md](SECURITY.md) and do not open a public issue.
+
 ## Development
 
 Tests that need no Home Assistant:
