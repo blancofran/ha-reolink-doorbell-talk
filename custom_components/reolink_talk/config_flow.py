@@ -29,8 +29,10 @@ from homeassistant.helpers.selector import (
 )
 
 from .const import (
+    CONF_ADMIN_ONLY,
     CONF_PRELOAD,
     CONF_QUALITY,
+    DEFAULT_ADMIN_ONLY,
     DEFAULT_PRELOAD,
     DEFAULT_QUALITY,
     DOMAIN,
@@ -207,7 +209,7 @@ class ReolinkTalkConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class ReolinkTalkOptionsFlow(OptionsFlow):
-    """Options: video quality and keeping the stream ready."""
+    """Options: video quality, keeping the stream ready and who may talk."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -229,6 +231,10 @@ class ReolinkTalkOptionsFlow(OptionsFlow):
                 ),
                 vol.Required(
                     CONF_PRELOAD, default=options.get(CONF_PRELOAD, DEFAULT_PRELOAD)
+                ): bool,
+                vol.Required(
+                    CONF_ADMIN_ONLY,
+                    default=options.get(CONF_ADMIN_ONLY, DEFAULT_ADMIN_ONLY),
                 ): bool,
             }
         )

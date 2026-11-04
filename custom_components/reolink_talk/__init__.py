@@ -10,12 +10,11 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 
 from .const import CARD_LAN_URL, CARD_URL, CARD_VERSION, DOMAIN
 from .coordinator import ReolinkTalkCoordinator
-from .websocket import async_register_commands
+from .websocket import async_close_sessions, async_register_commands
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -85,7 +84,6 @@ async def _async_register_card(hass: HomeAssistant) -> None:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up a doorbell from a config entry."""
     await _async_register_card(hass)
-    _async_remove_legacy_entities(hass, entry)
     coordinator = ReolinkTalkCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
@@ -94,21 +92,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-def _async_remove_legacy_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Remove cameras of earlier versions that no longer exist."""
-    registry = er.async_get(hass)
-    kinds = ["talk", "remote"]
-    for kind in kinds:
-        entity_id = registry.async_get_entity_id("camera", DOMAIN, f"{entry.unique_id}_{kind}")
-        if entity_id:
-            registry.async_remove(entity_id)
-
-
 async def _async_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload the entry when its options change."""
     await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
+    """Unload a config entry, closing any open voice session first."""
+    await async_close_sessions(hass, entry.entry_id)
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

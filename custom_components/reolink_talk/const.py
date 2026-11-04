@@ -8,6 +8,8 @@ DOMAIN = "reolink_talk"
 
 CONF_PRELOAD = "preload"
 CONF_QUALITY = "quality"
+CONF_ADMIN_ONLY = "admin_only"
+DEFAULT_ADMIN_ONLY = False
 QUALITY_LIGHT = "sub"
 QUALITY_HIGH = "main"
 DEFAULT_QUALITY = QUALITY_LIGHT
@@ -15,7 +17,7 @@ DEFAULT_PRELOAD = True
 
 CARD_URL = "/reolink_talk/reolink-talk-card.js"
 CARD_LAN_URL = "/reolink_talk/reolink-talk-lan-card.js"
-CARD_VERSION = "0.3.11"
+CARD_VERSION = "0.4.0"
 
 
 def stream_source(

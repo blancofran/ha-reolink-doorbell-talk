@@ -54,11 +54,13 @@
         "title": "Opciones del timbre",
         "data": {
           "quality": "Calidad del vídeo",
-          "preload": "Mantener el vídeo preparado"
+          "preload": "Mantener el vídeo preparado",
+          "admin_only": "Solo los administradores pueden hablar"
         },
         "data_description": {
           "quality": "Ligera usa menos datos (recomendada fuera de casa). Alta muestra más detalle.",
-          "preload": "Hace que el vídeo aparezca casi al instante, a cambio de una conexión permanente y ligera con el timbre."
+          "preload": "Hace que el vídeo aparezca casi al instante, a cambio de una conexión permanente y ligera con el timbre.",
+          "admin_only": "Si está activado, los demás usuarios de Home Assistant siguen viendo el vídeo pero no pueden usar el botón de hablar."
         }
       }
     }

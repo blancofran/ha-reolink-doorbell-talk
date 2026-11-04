@@ -54,11 +54,13 @@
         "title": "Doorbell options",
         "data": {
           "quality": "Video quality",
-          "preload": "Keep the video ready"
+          "preload": "Keep the video ready",
+          "admin_only": "Only administrators can talk"
         },
         "data_description": {
           "quality": "Light uses less data (recommended away from home). High shows more detail.",
-          "preload": "Makes the video appear almost instantly, in exchange for a permanent, light connection to the doorbell."
+          "preload": "Makes the video appear almost instantly, in exchange for a permanent, light connection to the doorbell.",
+          "admin_only": "If on, other Home Assistant users still see the video but cannot use the talk button."
         }
       }
     }

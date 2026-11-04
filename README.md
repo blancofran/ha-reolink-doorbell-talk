@@ -2,7 +2,7 @@
 
 Live video, sound and **two-way voice** with a Reolink doorbell from Home Assistant, in a single package (integration + cards). It works at home and away **without opening ports, VPNs or external services**: everything goes through Home Assistant's normal connection.
 
-> **Status: beta (0.3.11).** It works in the author's tests with a single model (Reolink Video Doorbell PoE), but there may be bugs and changes between versions. If something fails, open an issue and attach the integration diagnostics (sensitive data is redacted).
+> **Status: beta (0.4.0).** It works in the author's tests with a single model (Reolink Video Doorbell PoE), but there may be bugs and changes between versions. If something fails, open an issue and attach the integration diagnostics (sensitive data is redacted).
 
 [Versión en español](README.es.md)
 
@@ -48,6 +48,7 @@ Every minute the integration checks that the doorbell answers. If it does not (p
 
 - **Video quality**: light (less data, recommended away from home) or high.
 - **Keep the video ready**: the video appears almost instantly, in exchange for a permanent, light connection to the doorbell.
+- **Only administrators can talk**: other users still see the video but cannot use the talk button (off by default).
 
 You can also **reconfigure** (change the address or credentials) and **re-authenticate** (if the password changes) from the integration itself, and download **diagnostics** with sensitive data redacted.
 
@@ -69,7 +70,7 @@ Both cards have a visual editor (add the card from the card picker, or edit it a
 - With **WebRTC Camera (AlexxIT)** installed at the same time, the WebRTC camera of this integration did not offer WebRTC in one installation; the LAN card detects it and uses HLS. Disable WebRTC Camera if you want WebRTC.
 - HTTPS is required for the microphone.
 - The doorbell password lives only in Home Assistant's config entry, never in the package files. It is stored in plain text in `/config/.storage/core.config_entries` and therefore also in backups: **encrypt your backups**. Creating a dedicated doorbell user for Home Assistant instead of using the admin account is recommended.
-- Any Home Assistant user who can open the dashboard can talk through the doorbell.
+- By default any Home Assistant user who can open the dashboard can talk through the doorbell; turn on *Only administrators can talk* in the integration options to restrict it.
 - Adding an already configured doorbell again updates its address, username and password.
 
 ## Troubleshooting
@@ -86,6 +87,10 @@ Tests that need no Home Assistant:
 python tests/test_standalone.py
 python tests/test_talk.py
 ```
+
+## Third-party software
+
+The card bundles hls.js (Apache-2.0). See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
 
 ## License
 

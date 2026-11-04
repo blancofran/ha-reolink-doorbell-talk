@@ -18,7 +18,7 @@ from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 
-from .const import DOMAIN
+from .const import CONF_ADMIN_ONLY, DEFAULT_ADMIN_ONLY, DOMAIN
 from .talk import BackchannelClient, BackchannelError, TalkSession
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,6 +31,15 @@ def _entry_for_entity(hass: HomeAssistant, entity_id: str) -> ConfigEntry | None
     if entry_ent is None or entry_ent.platform != DOMAIN or not entry_ent.config_entry_id:
         return None
     return hass.config_entries.async_get_entry(entry_ent.config_entry_id)
+
+
+async def async_close_sessions(hass: HomeAssistant, entry_id: str) -> None:
+    """Close every voice session of a config entry (used when the entry is unloaded)."""
+    sessions = hass.data.get(SESSIONS, {})
+    for session_id, (owner, _connection, session) in list(sessions.items()):
+        if owner == entry_id:
+            sessions.pop(session_id, None)
+            await session.async_close("unloaded")
 
 
 @callback
@@ -49,6 +58,9 @@ async def ws_talk(hass: HomeAssistant, connection, msg: dict) -> None:
     entry = _entry_for_entity(hass, msg["entity_id"])
     if entry is None:
         connection.send_error(msg["id"], "not_found", "Unknown talk entity")
+        return
+    if entry.options.get(CONF_ADMIN_ONLY, DEFAULT_ADMIN_ONLY) and not connection.user.is_admin:
+        connection.send_error(msg["id"], "unauthorized", "Only administrators can talk")
         return
     sessions = hass.data.setdefault(SESSIONS, {})
     if any(item[0] == entry.entry_id for item in sessions.values()):

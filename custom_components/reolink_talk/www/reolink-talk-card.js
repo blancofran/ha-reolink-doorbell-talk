@@ -15,7 +15,7 @@ const RT_TEXT = {
     videoErr: 'No se pudo cargar el video', closeIn: (s) => `Se cerrará en ${s} s · toca la pantalla para seguir`,
     busy: 'Otro dispositivo está hablando con el timbre', talkFail: 'No se pudo abrir el canal de voz',
     rtcErr: 'WebRTC no conectó (solo funciona en la red local)',
-    offline: 'El timbre no responde', title: 'Timbre', titleLan: 'Timbre (LAN)',
+    offline: 'El timbre no responde', notAllowed: 'Solo los administradores pueden hablar por el timbre', title: 'Timbre', titleLan: 'Timbre (LAN)',
   },
   en: {
     talk: 'Talk to the doorbell', talking: 'Talking… tap to stop', hold: 'Hold to talk', holdOn: 'Talking… release to stop',
@@ -27,7 +27,7 @@ const RT_TEXT = {
     closeIn: (s) => `Closing in ${s} s · tap the screen to keep going`,
     busy: 'Another device is already talking to the doorbell', talkFail: 'Could not open the voice channel',
     rtcErr: 'WebRTC could not connect (it only works on the local network)',
-    offline: 'The doorbell is not responding', title: 'Doorbell', titleLan: 'Doorbell (LAN)',
+    offline: 'The doorbell is not responding', notAllowed: 'Only administrators can talk through the doorbell', title: 'Doorbell', titleLan: 'Doorbell (LAN)',
   },
 };
 
@@ -548,6 +548,7 @@ class ReolinkTalkCard extends HTMLElement {
       if (this._talk !== s) s.handle.stop();
     } catch (e) {
       const msg = e && e.name === 'NotAllowedError' ? this._t('noMic')
+        : e && e.code === 'unauthorized' ? this._t('notAllowed')
         : e && e.code === 'busy' ? this._t('busy')
         : e && e.code === 'talk_failed' ? this._t('talkFail') + ' (' + e.message + ')'
         : String((e && e.message) || e);

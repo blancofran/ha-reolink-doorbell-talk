@@ -2,7 +2,7 @@
 
 Vídeo, sonido y **voz bidireccional** con un timbre Reolink desde Home Assistant, en un único paquete (integración + tarjetas). Funciona en casa y fuera de casa **sin abrir puertos, sin VPN y sin servicios externos**: todo viaja por la conexión normal de Home Assistant.
 
-> **Estado: beta (0.3.11).** Funciona en las pruebas del autor con un único modelo (Reolink Video Doorbell PoE), pero puede haber errores y cambios entre versiones. Si algo falla, abre una *issue* con los diagnósticos de la integración (con los datos sensibles censurados).
+> **Estado: beta (0.4.0).** Funciona en las pruebas del autor con un único modelo (Reolink Video Doorbell PoE), pero puede haber errores y cambios entre versiones. Si algo falla, abre una *issue* con los diagnósticos de la integración (con los datos sensibles censurados).
 
 [English version](README.md)
 
@@ -48,6 +48,7 @@ Cada minuto la integración comprueba que el timbre responde. Si no responde (ap
 
 - **Calidad del vídeo**: ligera (menos datos, recomendada fuera de casa) o alta.
 - **Mantener el vídeo preparado**: el vídeo aparece casi al instante, a cambio de una conexión permanente y ligera con el timbre.
+- **Solo los administradores pueden hablar**: los demás usuarios siguen viendo el vídeo pero no pueden usar el botón de hablar (desactivado por defecto).
 
 También puedes **reconfigurar** (cambiar IP o credenciales) y **reautenticar** (si cambia la contraseña) desde la propia integración, y descargar **diagnósticos** con los datos sensibles censurados.
 
@@ -69,8 +70,12 @@ Ambas tarjetas tienen editor visual (añade la tarjeta desde el selector de tarj
 - **WebRTC Camera (AlexxIT) instalado a la vez**: en una instalación se observó que la cámara WebRTC de esta integración no ofrecía WebRTC mientras WebRTC Camera estaba activo; la tarjeta LAN lo detecta y usa HLS. Si quieres WebRTC, prueba a desactivar WebRTC Camera.
 - Se necesita HTTPS para el micrófono.
 - La contraseña del timbre se guarda solo en la configuración de Home Assistant, no en archivos del paquete. Está en texto plano en `/config/.storage/core.config_entries` y por tanto también en las copias de seguridad: **cifra tus copias**. Se recomienda crear en el timbre un usuario propio para Home Assistant en vez de usar el administrador.
-- Cualquier usuario de Home Assistant que pueda abrir el panel puede hablar por el timbre.
+- Por defecto cualquier usuario de Home Assistant que pueda abrir el panel puede hablar por el timbre; activa *Solo los administradores pueden hablar* en las opciones de la integración para restringirlo.
 - Si añades otra vez un timbre ya configurado, se actualizan su IP, usuario y contraseña.
+
+## Software de terceros
+
+La tarjeta incluye hls.js (Apache-2.0). Ver [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
 
 ## Problemas frecuentes
 
