@@ -14,13 +14,6 @@ import sys
 
 PKG = pathlib.Path(__file__).parent.parent / "custom_components" / "reolink_talk"
 
-try:  # under pytest, allow the local sockets of the fake doorbell (the Home Assistant plugin blocks them)
-    import pytest
-
-    pytestmark = pytest.mark.enable_socket
-except ImportError:  # running as a plain script
-    pass
-
 
 def _load(name):
     spec = importlib.util.spec_from_file_location(f"rt_{name}", PKG / f"{name}.py")

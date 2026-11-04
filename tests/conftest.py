@@ -52,3 +52,11 @@ def entry() -> MockConfigEntry:
         unique_id=SERIAL,
         data={"host": HOST, "username": USER, "password": PASSWORD},
     )
+
+
+@pytest.fixture(autouse=True)
+def _local_sockets_for_the_voice_tests(request):
+    """The Home Assistant plugin blocks sockets; the fake doorbell needs a local one."""
+    if request.module.__name__.endswith("test_talk"):
+        request.getfixturevalue("socket_enabled")
+    yield
