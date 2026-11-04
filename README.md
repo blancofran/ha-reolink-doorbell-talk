@@ -1,88 +1,10 @@
 # Reolink Doorbell Talk
 
-Vídeo, sonido y **voz bidireccional** con un timbre Reolink desde Home Assistant, en un único paquete (integración + tarjetas). Funciona en casa y fuera de casa **sin abrir puertos, sin VPN y sin servicios externos**: todo viaja por la conexión normal de Home Assistant.
+Live video, sound and **two-way voice** with a Reolink doorbell from Home Assistant, in a single package (integration + cards). It works at home and away **without opening ports, VPNs or external services**: everything goes through Home Assistant's normal connection.
 
-> **Estado: beta (0.3.6).** Funciona en las pruebas del autor con un único modelo (Reolink Video Doorbell PoE), pero puede haber errores y cambios entre versiones. Si algo falla, abre una *issue* con los diagnósticos de la integración (con los datos sensibles censurados).
+> **Status: beta (0.3.7).** It works in the author's tests with a single model (Reolink Video Doorbell PoE), but there may be bugs and changes between versions. If something fails, open an issue and attach the integration diagnostics (sensitive data is redacted).
 
-*English version below.*
-
-## Qué incluye
-
-| Pieza | Para qué |
-|---|---|
-| Integración `reolink_talk` | Cámara con el vídeo del timbre, canal de voz hacia el timbre y registro automático de las tarjetas |
-| Tarjeta `custom:reolink-talk-card` | **Casa y fuera**: vídeo por HTTPS (HLS) + botón para hablar. Retraso de unos 3 s |
-| Tarjeta `custom:reolink-talk-lan-card` | **Solo en casa**: vídeo por WebRTC (menor retraso) + el mismo botón para hablar |
-
-## Requisitos
-
-- Home Assistant 2025.1 o superior.
-- Timbre Reolink Video Doorbell (probado con el modelo PoE) con usuario y contraseña de administrador y acceso por red local.
-- Para hablar: abrir Home Assistant por **HTTPS** (por ejemplo Nabu Casa, un proxy inverso o Cloudflare). Los navegadores no permiten usar el micrófono con `http://` (salvo `localhost`).
-
-## Instalación
-
-1. HACS → menú ⋮ → *Repositorios personalizados* → añade `https://github.com/blancofran/ha-reolink-doorbell-talk` como *Integración*.
-2. Instala *Reolink Doorbell Talk* y reinicia Home Assistant.
-3. *Ajustes → Dispositivos y servicios → Añadir integración → Reolink Doorbell Talk*. Indica la IP del timbre, el usuario y la contraseña.
-4. Las tarjetas se registran solas. Añádelas al panel:
-
-```yaml
-type: custom:reolink-talk-card
-entity: camera.timbre_ver_y_escuchar
-title: Timbre
-```
-
-Solo en casa, con WebRTC (la cámara WebRTC se crea sola):
-
-```yaml
-type: custom:reolink-talk-lan-card
-entity: camera.timbre_ver_y_escuchar
-```
-
-## Estado del timbre
-
-Cada minuto la integración comprueba que el timbre responde. Si no responde (apagado, sin red, cable desconectado), las dos cámaras pasan a *no disponible* y las tarjetas muestran "El timbre no responde" en lugar de quedarse cargando; cuando vuelve, el vídeo se reanuda solo.
-
-## Opciones de la integración
-
-- **Calidad del vídeo**: ligera (menos datos, recomendada fuera de casa) o alta.
-- **Mantener el vídeo preparado**: el vídeo aparece casi al instante, a cambio de una conexión permanente y ligera con el timbre.
-
-También puedes **reconfigurar** (cambiar IP o credenciales) y **reautenticar** (si cambia la contraseña) desde la propia integración, y descargar **diagnósticos** con los datos sensibles censurados.
-
-## Opciones de las tarjetas
-
-`entity` (obligatoria), `title`, `mode` (`toggle` o `hold`, mantener para hablar), `max_seconds` (90), `idle_seconds` (45), `warn_seconds` (10), `timeout` (12), `autoplay` (true), `show_info` (false: muestra en el vídeo el transporte y el retraso, útil para diagnosticar), `view_fallback` (true: la tarjeta LAN cae a HLS si WebRTC no está disponible), `max_width` (460), `view_timeout` (6), `hls_url` (por defecto se usa la copia incluida de hls.js).
-
-## Cómo funciona
-
-- **Vídeo y sonido**: el timbre ofrece un flujo FLV por HTTP. Home Assistant lo convierte a HLS (`stream`) y la tarjeta lo reproduce con hls.js (incluido). En el modo LAN se usa WebRTC con el go2rtc integrado de Home Assistant.
-- **Voz**: micrófono del navegador → AudioWorklet (8 kHz, G.711 µ-law) → WebSocket de Home Assistant → cliente RTSP con *backchannel* ONVIF → timbre. Un solo dispositivo puede hablar a la vez; la sesión se cierra por tiempo máximo, por inactividad o al pasar la app a segundo plano.
-
-## Limitaciones conocidas
-
-- El HLS tiene un retraso mínimo de unos 3 s (viene de cómo Home Assistant segmenta el vídeo). Para menos retraso en casa usa la tarjeta LAN.
-- **Safari**: el go2rtc integrado de Home Assistant solo admite WebRTC por TCP, que Safari en el navegador puede no soportar; en ese caso la tarjeta LAN **cae sola a HLS**. En las apps Companion de iOS y de Android, las tarjetas funcionan en las pruebas del autor.
-- **WebRTC Camera (AlexxIT) instalado a la vez**: en una instalación se observó que la cámara WebRTC de esta integración no ofrecía WebRTC mientras WebRTC Camera estaba activo; la tarjeta LAN lo detecta y usa HLS. Si quieres WebRTC, prueba a desactivar WebRTC Camera.
-- Se necesita HTTPS para el micrófono.
-- La contraseña del timbre se guarda solo en la configuración de Home Assistant, no en archivos del paquete. Está en texto plano en `/config/.storage/core.config_entries` y por tanto también en las copias de seguridad: **cifra tus copias**. Se recomienda crear en el timbre un usuario propio para Home Assistant en vez de usar el administrador.
-- Cualquier usuario de Home Assistant que pueda abrir el panel puede hablar por el timbre.
-- Si añades otra vez un timbre ya configurado, se actualizan su IP, usuario y contraseña.
-
-## Problemas frecuentes
-
-- *"No se pudo abrir el canal de voz"*: otro dispositivo está hablando, o el timbre no acepta una segunda sesión de voz. Reintenta.
-- *"Error de configuración"* en la tarjeta: recarga con Ctrl+Shift+R; comprueba en *Ajustes → Paneles → Recursos* que existen los recursos de `/reolink_talk/`.
-- *Sin vídeo en el modo LAN*: comprueba que la entidad es la del timbre y que el go2rtc integrado de Home Assistant está en marcha; recarga la tarjeta.
-
----
-
-# English
-
-> **Status: beta (0.3.2).** It works in the author's tests with a single model (Reolink Video Doorbell PoE), but there may be bugs and changes between versions. If something fails, open an issue and attach the integration diagnostics (sensitive data is redacted).
-
-Video, sound and **two-way voice** with a Reolink doorbell from Home Assistant, in a single package (integration + cards). It works at home and away **without opening ports, VPNs or external services**: everything goes through Home Assistant's normal connection.
+[Versión en español](README.es.md)
 
 ## What's inside
 
@@ -90,42 +12,79 @@ Video, sound and **two-way voice** with a Reolink doorbell from Home Assistant, 
 |---|---|
 | `reolink_talk` integration | Camera with the doorbell video, voice channel to the doorbell, automatic card registration |
 | `custom:reolink-talk-card` | **Home and away**: HTTPS (HLS) video + talk button. About 3 s delay |
-| `custom:reolink-talk-lan-card` | **Home only**: WebRTC video (lowest delay) + the same talk button |
+| `custom:reolink-talk-lan-card` | **Home only**: WebRTC video (lower delay) + the same talk button |
 
 ## Requirements
 
 - Home Assistant 2025.1 or newer.
-- A Reolink Video Doorbell (tested with the PoE model), admin credentials and LAN access.
-- To talk: open Home Assistant over **HTTPS**. Browsers block the microphone on plain `http://` (except `localhost`).
+- A Reolink Video Doorbell (tested with the PoE model), its admin username and password, and local network access.
+- To talk: open Home Assistant over **HTTPS** (for example Nabu Casa, a reverse proxy or Cloudflare). Browsers do not allow the microphone on plain `http://` (except `localhost`).
 
 ## Installation
 
 1. HACS → ⋮ → *Custom repositories* → add `https://github.com/blancofran/ha-reolink-doorbell-talk` as an *Integration*.
 2. Install *Reolink Doorbell Talk* and restart Home Assistant.
-3. *Settings → Devices & services → Add integration → Reolink Doorbell Talk*; enter the doorbell IP, user and password.
-4. The cards register themselves. Add them to a dashboard:
+3. *Settings → Devices & services → Add integration → Reolink Doorbell Talk*. Enter the doorbell IP address, username and password.
+4. The cards register themselves. Add them to a dashboard (the camera's entity id depends on your doorbell's name and your language; look it up in *Settings → Devices & services*):
 
 ```yaml
 type: custom:reolink-talk-card
 entity: camera.doorbell_view_and_listen
+title: Doorbell
 ```
 
-LAN only: `type: custom:reolink-talk-lan-card` with the same `entity` (the WebRTC camera is created automatically).
+Home only, with WebRTC (the WebRTC camera is created automatically):
+
+```yaml
+type: custom:reolink-talk-lan-card
+entity: camera.doorbell_view_and_listen
+```
 
 ## Doorbell status
 
-Every minute the integration checks that the doorbell answers. If it does not (powered off, no network, cable unplugged) both cameras become *unavailable* and the cards show "The doorbell is not responding" instead of loading forever; the video resumes by itself when it is back.
+Every minute the integration checks that the doorbell answers. If it does not (powered off, no network, cable unplugged), both cameras become *unavailable* and the cards show "The doorbell is not responding" instead of loading forever; the video resumes by itself when it is back.
 
-## Options
+## Integration options
 
-Video quality (light/high) and keep the video ready (near-instant start). The integration also supports reconfigure, re-authentication and redacted diagnostics.
+- **Video quality**: light (less data, recommended away from home) or high.
+- **Keep the video ready**: the video appears almost instantly, in exchange for a permanent, light connection to the doorbell.
+
+You can also **reconfigure** (change the address or credentials) and **re-authenticate** (if the password changes) from the integration itself, and download **diagnostics** with sensitive data redacted.
+
+## Card options
+
+`entity` (required), `title`, `mode` (`toggle`, or `hold` to talk while pressed), `max_seconds` (90), `idle_seconds` (45), `warn_seconds` (10), `timeout` (12), `autoplay` (true), `show_info` (false: shows the transport and delay on the video, useful for troubleshooting), `view_fallback` (true: the LAN card falls back to HLS when WebRTC is unavailable), `max_width` (460), `view_timeout` (6), `hls_url` (by default the bundled copy of hls.js is used).
+
+## How it works
+
+- **Video and sound**: the doorbell offers an FLV stream over HTTP. Home Assistant turns it into HLS (`stream`) and the card plays it with hls.js (bundled). The LAN card uses WebRTC through Home Assistant's built-in go2rtc.
+- **Voice**: browser microphone → AudioWorklet (8 kHz, G.711 µ-law) → Home Assistant WebSocket → RTSP client using the ONVIF *backchannel* → doorbell. Only one device can talk at a time; the session ends at the maximum time, when idle, or when the app goes to the background.
 
 ## Known limitations
 
-- HLS has a minimum delay of about 3 s; use the LAN card for less delay at home.
+- HLS has a minimum delay of about 3 s (it comes from how Home Assistant segments the video). For less delay at home use the LAN card.
 - **Safari** in the browser may not support WebRTC with Home Assistant's built-in go2rtc (TCP only); the LAN card then **falls back to HLS automatically**. The cards work in the iOS and Android Companion apps in the author's tests.
 - With **WebRTC Camera (AlexxIT)** installed at the same time, the WebRTC camera of this integration did not offer WebRTC in one installation; the LAN card detects it and uses HLS. Disable WebRTC Camera if you want WebRTC.
 - HTTPS is required for the microphone.
 - The doorbell password lives only in Home Assistant's config entry, never in the package files. It is stored in plain text in `/config/.storage/core.config_entries` and therefore also in backups: **encrypt your backups**. Creating a dedicated doorbell user for Home Assistant instead of using the admin account is recommended.
 - Any Home Assistant user who can open the dashboard can talk through the doorbell.
 - Adding an already configured doorbell again updates its address, username and password.
+
+## Troubleshooting
+
+- *"Could not open the voice channel"*: another device is talking, or the doorbell does not accept a second voice session. Try again.
+- *"Configuration error"* on the card: reload with Ctrl+Shift+R and check in *Settings → Dashboards → Resources* that the `/reolink_talk/` resources exist.
+- *No video in the LAN card*: check that the entity is the doorbell's and that Home Assistant's built-in go2rtc is running; reload the card. The card falls back to HLS on its own when WebRTC fails.
+
+## Development
+
+Tests that need no Home Assistant:
+
+```bash
+python tests/test_standalone.py
+python tests/test_talk.py
+```
+
+## License
+
+MIT

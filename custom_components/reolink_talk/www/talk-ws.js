@@ -1,6 +1,6 @@
-// talk-ws: captura el micrófono, lo convierte a G.711 mu-law (8 kHz) y lo envía a Home Assistant por la
-// conexión WebSocket normal. La integración lo reenvía al timbre por RTSP. Funciona desde cualquier sitio
-// desde el que se pueda abrir Home Assistant (no usa UDP ni puertos extra).
+// talk-ws: captures the microphone, converts it to G.711 mu-law (8 kHz) and sends it to Home Assistant over
+// the regular WebSocket connection. The integration forwards it to the doorbell over RTSP. It works from
+// anywhere Home Assistant can be opened (no UDP and no extra ports).
 const WORKLET = `
 function enc(f) {
   let s = Math.round(Math.max(-1, Math.min(1, f)) * 32767);
@@ -60,7 +60,7 @@ export async function startWsTalk({ hass, entityId, onReady, onClosed }) {
     try { await ctx.audioWorklet.addModule(url); } finally { URL.revokeObjectURL(url); }
     node = new AudioWorkletNode(ctx, 'rt-mulaw');
     ctx.createMediaStreamSource(stream).connect(node);
-    // Conectado a la salida con volumen 0: así el navegador procesa el audio sin interrupciones (Safari lo necesita).
+    // Connected to the output with zero volume so the browser keeps processing the audio without gaps (Safari needs it).
     const mute = ctx.createGain();
     mute.gain.value = 0;
     node.connect(mute);
@@ -70,7 +70,7 @@ export async function startWsTalk({ hass, entityId, onReady, onClosed }) {
     node.port.onmessage = (e) => {
       if (!sessionId || stopped) return;
       pending.push(e.data);
-      if (pending.length < 3) return; // 60 ms por mensaje
+      if (pending.length < 3) return; // 60 ms per message
       const buf = new Uint8Array(pending.length * 160);
       pending.forEach((c, i) => buf.set(c, i * 160));
       pending = [];
