@@ -1,0 +1,71 @@
+name: Compatibility report
+description: Tell us whether it works (or not) with your doorbell or camera model
+title: "[Compatibility] <brand and model>"
+labels: ["compatibility"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you! Reports like this build the list of tested devices in the README. Please fill in one report per model.
+        Only the Reolink Video Doorbell PoE has been tested by the author.
+  - type: input
+    id: model
+    attributes:
+      label: Brand and model
+      placeholder: Reolink Video Doorbell WiFi
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware version
+      description: Shown in the Reolink app or the device web page.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Integration version
+      placeholder: 0.5.0
+    validations:
+      required: true
+  - type: dropdown
+    id: video
+    attributes:
+      label: Video and sound
+      options:
+        - Works
+        - Works with problems (explain below)
+        - Does not work
+    validations:
+      required: true
+  - type: dropdown
+    id: voice
+    attributes:
+      label: Two-way voice (talking through the doorbell)
+      options:
+        - Works
+        - Works with problems (explain below)
+        - Does not work
+        - Not tested
+    validations:
+      required: true
+  - type: dropdown
+    id: card
+    attributes:
+      label: Cards you tested
+      multiple: true
+      options:
+        - WAN card (HLS)
+        - LAN card (WebRTC)
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Delay, voice quality, anything that needed a workaround. For failures, please open a Bug report instead and attach the diagnostics.
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Listing
+      options:
+        - label: You may add this model to the compatibility table in the README.

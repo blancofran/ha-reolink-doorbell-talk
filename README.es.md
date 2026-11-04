@@ -67,6 +67,16 @@ En los paneles de secciones las tarjetas se pueden redimensionar libremente en m
 - **Vídeo y sonido**: el timbre ofrece un flujo FLV por HTTP. Home Assistant lo convierte a HLS (`stream`) y la tarjeta lo reproduce con hls.js (incluido). En el modo LAN se usa WebRTC con el go2rtc integrado de Home Assistant.
 - **Voz**: micrófono del navegador → AudioWorklet (8 kHz, G.711 µ-law) → WebSocket de Home Assistant → cliente RTSP con *backchannel* ONVIF → timbre. Un solo dispositivo puede hablar a la vez; la sesión se cierra por tiempo máximo, por inactividad o al pasar la app a segundo plano.
 
+## Compatibilidad
+
+Dispositivos probados. Los reportes los envían los usuarios; el autor solo tiene el primero.
+
+| Dispositivo | Vídeo + sonido | Voz | Reportado por |
+|---|---|---|---|
+| Reolink Video Doorbell PoE | Funciona | Funciona | autor |
+
+**¿Funciona con tu timbre o cámara?** Cuéntanos con un [reporte de compatibilidad](https://github.com/blancofran/ha-reolink-doorbell-talk/issues/new?template=compatibility_report.yml), tanto si funciona como si no. [Todos los reportes](https://github.com/blancofran/ha-reolink-doorbell-talk/issues?q=label%3Acompatibility) son públicos. Otras marcas aún no están soportadas: la dirección del vídeo es propia de Reolink, aunque la voz usa el *backchannel* estándar de ONVIF.
+
 ## Limitaciones conocidas
 
 - El HLS tiene un retraso mínimo de unos 3 s (viene de cómo Home Assistant segmenta el vídeo). Para menos retraso en casa usa la tarjeta LAN.

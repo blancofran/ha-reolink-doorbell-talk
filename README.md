@@ -67,6 +67,16 @@ In sections dashboards the cards can be resized freely in edit mode (drag the ha
 - **Video and sound**: the doorbell offers an FLV stream over HTTP. Home Assistant turns it into HLS (`stream`) and the card plays it with hls.js (bundled). The LAN card uses WebRTC through Home Assistant's built-in go2rtc.
 - **Voice**: browser microphone → AudioWorklet (8 kHz, G.711 µ-law) → Home Assistant WebSocket → RTSP client using the ONVIF *backchannel* → doorbell. Only one device can talk at a time; the session ends at the maximum time, when idle, or when the app goes to the background.
 
+## Compatibility
+
+Tested devices. Reports come from users; the author has only the first one.
+
+| Device | Video + sound | Voice | Reported by |
+|---|---|---|---|
+| Reolink Video Doorbell PoE | Works | Works | author |
+
+**Does it work with your doorbell or camera?** Tell us with a [compatibility report](https://github.com/blancofran/ha-reolink-doorbell-talk/issues/new?template=compatibility_report.yml), whether it works or not. [All reports](https://github.com/blancofran/ha-reolink-doorbell-talk/issues?q=label%3Acompatibility) are public. Other brands are not supported yet: the video address is Reolink-specific, although the voice channel uses the standard ONVIF backchannel.
+
 ## Known limitations
 
 - HLS has a minimum delay of about 3 s (it comes from how Home Assistant segments the video). For less delay at home use the LAN card.
