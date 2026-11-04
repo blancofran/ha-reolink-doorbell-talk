@@ -46,8 +46,26 @@ def test_card_files_have_no_url_escapes():
         assert "%C" not in (www / f).read_text(encoding="utf-8"), f
 
 
+def test_translations_have_same_keys():
+    import json
+
+    def keys(d, prefix=""):
+        for k, v in d.items():
+            if isinstance(v, dict):
+                yield from keys(v, prefix + k + ".")
+            else:
+                yield prefix + k
+
+    tr = PKG / "translations"
+    base = set(keys(json.loads((tr / "en.json").read_text(encoding="utf-8"))))
+    for name in ("es.json", "es-419.json"):
+        got = set(keys(json.loads((tr / name).read_text(encoding="utf-8"))))
+        assert got == base, (name, base ^ got)
+
+
 if __name__ == "__main__":
     for _name in sorted(dir()):
         if _name.startswith("test_"):
             globals()[_name]()
             print("ok", _name)
+

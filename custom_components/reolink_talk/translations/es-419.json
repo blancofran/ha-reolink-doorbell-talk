@@ -1,0 +1,74 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Timbre Reolink",
+        "description": "Datos de acceso al timbre. La contraseña se guarda solo en la configuración de Home Assistant.",
+        "data": {
+          "host": "Dirección IP del timbre",
+          "username": "Usuario",
+          "password": "Contraseña"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Contraseña caducada",
+        "description": "Introduce la nueva contraseña de {name}.",
+        "data": {
+          "password": "Contraseña"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurar el timbre",
+        "description": "Cambia la dirección o las credenciales. La contraseña no se guarda en ningún otro sitio.",
+        "data": {
+          "host": "Dirección IP del timbre",
+          "username": "Usuario",
+          "password": "Contraseña"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No se pudo conectar con el timbre",
+      "invalid_auth": "Usuario o contraseña incorrectos"
+    },
+    "abort": {
+      "already_configured": "Este timbre ya está configurado",
+      "reauth_successful": "Contraseña actualizada",
+      "reconfigure_successful": "Configuración actualizada",
+      "wrong_device": "Esa dirección corresponde a otro timbre"
+    }
+  },
+  "entity": {
+    "camera": {
+      "view": {
+        "name": "Ver y escuchar"
+      },
+      "webrtc": {
+        "name": "WebRTC (solo en casa)"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opciones del timbre",
+        "data": {
+          "quality": "Calidad del vídeo",
+          "preload": "Mantener el vídeo preparado"
+        },
+        "data_description": {
+          "quality": "Ligera usa menos datos (recomendada fuera de casa). Alta muestra más detalle.",
+          "preload": "Hace que el vídeo aparezca casi al instante, a cambio de una conexión permanente y ligera con el timbre."
+        }
+      }
+    }
+  },
+  "selector": {
+    "quality": {
+      "options": {
+        "sub": "Ligera",
+        "main": "Alta"
+      }
+    }
+  }
+}
