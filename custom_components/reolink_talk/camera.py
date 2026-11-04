@@ -11,6 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.start import async_at_started
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     CONF_PRELOAD,
@@ -21,6 +22,7 @@ from .const import (
     stream_source,
     webrtc_source,
 )
+from .coordinator import ReolinkTalkCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,20 +33,29 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Create the HTTPS camera and the LAN-only WebRTC camera (idle until a card uses it)."""
+    coordinator: ReolinkTalkCoordinator = entry.runtime_data
     async_add_entities(
-        [ReolinkTalkCamera(entry, "view"), ReolinkTalkCamera(entry, "webrtc")]
+        [
+            ReolinkTalkCamera(coordinator, entry, "view"),
+            ReolinkTalkCamera(coordinator, entry, "webrtc"),
+        ]
     )
 
 
-class ReolinkTalkCamera(Camera):
-    """Doorbell camera whose video is read by Home Assistant's stream component."""
+class ReolinkTalkCamera(CoordinatorEntity[ReolinkTalkCoordinator], Camera):
+    """Doorbell camera whose video is read by Home Assistant's stream component.
+
+    It is unavailable while the doorbell does not answer.
+    """
 
     _attr_has_entity_name = True
     _attr_supported_features = CameraEntityFeature.STREAM
 
-    def __init__(self, entry: ConfigEntry, kind: str) -> None:
+    def __init__(
+        self, coordinator: ReolinkTalkCoordinator, entry: ConfigEntry, kind: str
+    ) -> None:
         """Initialise the entity (kind is "view" for HTTPS or "webrtc" for LAN only)."""
-        super().__init__()
+        super().__init__(coordinator)
         self._entry = entry
         self._kind = kind
         self._attr_translation_key = kind

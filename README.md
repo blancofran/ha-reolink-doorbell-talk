@@ -2,7 +2,7 @@
 
 Vídeo, sonido y **voz bidireccional** con un timbre Reolink desde Home Assistant, en un único paquete (integración + tarjetas). Funciona en casa y fuera de casa **sin abrir puertos, sin VPN y sin servicios externos**: todo viaja por la conexión normal de Home Assistant.
 
-> **Estado: beta (0.3.4).** Funciona en las pruebas del autor con un único modelo (Reolink Video Doorbell PoE), pero puede haber errores y cambios entre versiones. Si algo falla, abre una *issue* con los diagnósticos de la integración (con los datos sensibles censurados).
+> **Estado: beta (0.3.5).** Funciona en las pruebas del autor con un único modelo (Reolink Video Doorbell PoE), pero puede haber errores y cambios entre versiones. Si algo falla, abre una *issue* con los diagnósticos de la integración (con los datos sensibles censurados).
 
 *English version below.*
 
@@ -39,6 +39,10 @@ Solo en casa, con WebRTC (la cámara WebRTC se crea sola):
 type: custom:reolink-talk-lan-card
 entity: camera.timbre_ver_y_escuchar
 ```
+
+## Estado del timbre
+
+Cada minuto la integración comprueba que el timbre responde. Si no responde (apagado, sin red, cable desconectado), las dos cámaras pasan a *no disponible* y las tarjetas muestran "El timbre no responde" en lugar de quedarse cargando; cuando vuelve, el vídeo se reanuda solo.
 
 ## Opciones de la integración
 
@@ -107,6 +111,10 @@ entity: camera.doorbell_view_and_listen
 ```
 
 LAN only: `type: custom:reolink-talk-lan-card` with the same `entity` (the WebRTC camera is created automatically).
+
+## Doorbell status
+
+Every minute the integration checks that the doorbell answers. If it does not (powered off, no network, cable unplugged) both cameras become *unavailable* and the cards show "The doorbell is not responding" instead of loading forever; the video resumes by itself when it is back.
 
 ## Options
 

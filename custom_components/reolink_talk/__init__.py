@@ -14,6 +14,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 
 from .const import CARD_LAN_URL, CARD_URL, CARD_VERSION, DOMAIN
+from .coordinator import ReolinkTalkCoordinator
 from .websocket import async_register_commands
 
 _LOGGER = logging.getLogger(__name__)
@@ -85,6 +86,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up a doorbell from a config entry."""
     await _async_register_card(hass)
     _async_remove_legacy_entities(hass, entry)
+    coordinator = ReolinkTalkCoordinator(hass, entry)
+    await coordinator.async_config_entry_first_refresh()
+    entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_options_updated))
     return True

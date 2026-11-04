@@ -32,3 +32,4 @@ jobs:
         with:
           python-version: "3.13"
       - run: python tests/test_standalone.py
+      - run: python tests/test_talk.py

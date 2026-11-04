@@ -14,6 +14,7 @@ const RT_TEXT = {
     videoErr: 'No se pudo cargar el video', closeIn: (s) => `Se cerrará en ${s} s · toca la pantalla para seguir`,
     busy: 'Otro dispositivo está hablando con el timbre', talkFail: 'No se pudo abrir el canal de voz',
     rtcErr: 'WebRTC no conectó (solo funciona en la red local)',
+    offline: 'El timbre no responde',
   },
   en: {
     talk: 'Talk to the doorbell', talking: 'Talking… tap to stop', hold: 'Hold to talk', holdOn: 'Talking… release to stop',
@@ -25,6 +26,7 @@ const RT_TEXT = {
     closeIn: (s) => `Closing in ${s} s · tap the screen to keep going`,
     busy: 'Another device is already talking to the doorbell', talkFail: 'Could not open the voice channel',
     rtcErr: 'WebRTC could not connect (it only works on the local network)',
+    offline: 'The doorbell is not responding',
   },
 };
 
@@ -65,9 +67,21 @@ class ReolinkTalkCard extends HTMLElement {
     this._set(this._state || 'off');
   }
 
+  // The camera is "unavailable" while the doorbell does not answer.
+  _isOffline() {
+    const st = this._hass && this._c && this._hass.states && this._hass.states[this._c.entity];
+    return !!st && st.state === 'unavailable';
+  }
+
   set hass(hass) {
     this._hass = hass;
-    if (this._c && this._c.autoplay && !this._viewTried && this.isConnected) {
+    const off = this._isOffline();
+    if (off !== !!this._offline) {
+      this._offline = off;
+      if (off) { this._stopView(); this._videoMsg(this._t('offline')); }
+      else { this._videoMsg(''); this._viewTried = false; }
+    }
+    if (this._c && this._c.autoplay && !this._viewTried && !off && this.isConnected) {
       this._viewTried = true;
       this._startView();
     }
@@ -231,6 +245,7 @@ class ReolinkTalkCard extends HTMLElement {
   // ---------- vídeo: HLS de Home Assistant (camera/stream) ----------
   async _startView() {
     if (this._hls || this._hlsBusy || this._rtc || this._rtcBusy || !this._hass) return;
+    if (this._isOffline()) { this._videoMsg(this._t('offline')); return; }
     this._tView = performance.now();
     this._t00 = this._tView;
     this._log('inicio: ' + this._c.view_transport);
@@ -433,6 +448,7 @@ class ReolinkTalkCard extends HTMLElement {
   // ---------- hablar: micrófono -> WebSocket de Home Assistant -> timbre ----------
   async _start() {
     if (this._talk || !this._hass) return;
+    if (this._isOffline()) { this._fail(this._t('offline')); return; }
     clearTimeout(this._errT); clearTimeout(this._msgT);
     if (this._video && this._video.muted) { this._video.muted = false; this._refreshSound(); }
     if (this._video) { const p = this._video.play(); if (p && p.catch) p.catch(() => {}); }
