@@ -40,17 +40,6 @@ type: custom:reolink-talk-lan-card
 entity: camera.timbre_ver_y_escuchar
 ```
 
-## Actualizar desde la 0.5.x o anteriores
-
-La versión 0.6.0 cambió el nombre interno de la integración (de `reolink_talk` a `reolink_doorbell_talk`) para que no choque con otros componentes de voz de Reolink. Home Assistant la trata como una integración nueva, así que hay que actualizar una vez así:
-
-1. Antes de actualizar, elimina la integración antigua: *Ajustes → Dispositivos y servicios → Reolink Doorbell Talk → ⋮ → Eliminar*.
-2. Actualiza en HACS y reinicia Home Assistant.
-3. Añade la integración de nuevo (*Añadir integración → Reolink Doorbell Talk*) con la dirección, usuario y contraseña del timbre.
-4. En *Ajustes → Paneles → Recursos*, borra las dos entradas antiguas que empiezan por `/reolink_talk/` (las nuevas se añaden solas).
-5. Si la carpeta `custom_components/reolink_talk` sigue ahí tras actualizar, bórrala y reinicia.
-6. Tus tarjetas siguen funcionando igual, salvo que la entidad de la cámara puede tener otro id. Revisa la línea `entity:`.
-
 ## Estado del timbre
 
 Cada minuto la integración comprueba que el timbre responde. Si no responde (apagado, sin red, cable desconectado), las dos cámaras pasan a *no disponible* y las tarjetas muestran "El timbre no responde" en lugar de quedarse cargando; cuando vuelve, el vídeo se reanuda solo.

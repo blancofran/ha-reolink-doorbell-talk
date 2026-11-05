@@ -40,17 +40,6 @@ type: custom:reolink-talk-lan-card
 entity: camera.doorbell_view_and_listen
 ```
 
-## Updating from 0.5.x or older
-
-Version 0.6.0 changed the integration's internal name (from `reolink_talk` to `reolink_doorbell_talk`) so it does not clash with other Reolink talk components. Home Assistant treats it as a new integration, so update once like this:
-
-1. Before updating, delete the old integration: *Settings → Devices & services → Reolink Doorbell Talk → ⋮ → Delete*.
-2. Update in HACS and restart Home Assistant.
-3. Add the integration again (*Add integration → Reolink Doorbell Talk*) with your doorbell's address, username and password.
-4. In *Settings → Dashboards → Resources*, delete the two old entries that start with `/reolink_talk/` (the new ones are added automatically).
-5. If the folder `custom_components/reolink_talk` is still there after the update, delete it and restart.
-6. Your cards keep working as they are, except that their camera entity may have a new id. Check the `entity:` line.
-
 ## Doorbell status
 
 Every minute the integration checks that the doorbell answers. If it does not (powered off, no network, cable unplugged), both cameras become *unavailable* and the cards show "The doorbell is not responding" instead of loading forever; the video resumes by itself when it is back.
