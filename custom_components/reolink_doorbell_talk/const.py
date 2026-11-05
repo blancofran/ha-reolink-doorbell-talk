@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from urllib.parse import quote
 
-DOMAIN = "reolink_talk"
+DOMAIN = "reolink_doorbell_talk"
 
 CONF_PRELOAD = "preload"
 CONF_QUALITY = "quality"
@@ -15,9 +15,9 @@ QUALITY_HIGH = "main"
 DEFAULT_QUALITY = QUALITY_LIGHT
 DEFAULT_PRELOAD = True
 
-CARD_URL = "/reolink_talk/reolink-talk-card.js"
-CARD_LAN_URL = "/reolink_talk/reolink-talk-lan-card.js"
-CARD_VERSION = "0.5.1"
+CARD_URL = "/reolink_doorbell_talk/reolink-talk-card.js"
+CARD_LAN_URL = "/reolink_doorbell_talk/reolink-talk-lan-card.js"
+CARD_VERSION = "0.6.0"
 
 
 def stream_source(

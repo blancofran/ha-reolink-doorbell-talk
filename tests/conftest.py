@@ -8,7 +8,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
-from custom_components.reolink_talk.const import DOMAIN  # noqa: E402
+from custom_components.reolink_doorbell_talk.const import DOMAIN  # noqa: E402
 
 HOST = "192.0.2.10"
 SERIAL = "SERIAL123"
@@ -27,7 +27,7 @@ def reachable() -> Generator[AsyncMock]:
     """Make the doorbell answer on its HTTP port (the coordinator check)."""
     writer = MagicMock()
     with patch(
-        "custom_components.reolink_talk.coordinator.asyncio.open_connection",
+        "custom_components.reolink_doorbell_talk.coordinator.asyncio.open_connection",
         AsyncMock(return_value=(MagicMock(), writer)),
     ) as mock:
         yield mock
@@ -37,7 +37,7 @@ def reachable() -> Generator[AsyncMock]:
 def validate() -> Generator[AsyncMock]:
     """Make the doorbell login in the config flow succeed."""
     with patch(
-        "custom_components.reolink_talk.config_flow._async_validate",
+        "custom_components.reolink_doorbell_talk.config_flow._async_validate",
         AsyncMock(return_value={"serial": SERIAL, "name": "Front door"}),
     ) as mock:
         yield mock

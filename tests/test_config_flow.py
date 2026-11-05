@@ -6,12 +6,12 @@ from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-from custom_components.reolink_talk.config_flow import CannotConnect, InvalidAuth
-from custom_components.reolink_talk.const import DOMAIN
+from custom_components.reolink_doorbell_talk.config_flow import CannotConnect, InvalidAuth
+from custom_components.reolink_doorbell_talk.const import DOMAIN
 
 from .conftest import HOST, PASSWORD, SERIAL, USER
 
-NO_SETUP = patch("custom_components.reolink_talk.async_setup_entry", return_value=True)
+NO_SETUP = patch("custom_components.reolink_doorbell_talk.async_setup_entry", return_value=True)
 USER_INPUT = {"host": HOST, "username": USER, "password": PASSWORD}
 
 

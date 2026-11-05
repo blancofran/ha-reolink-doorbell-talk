@@ -4,7 +4,7 @@ import importlib.util
 import pathlib
 import sys
 
-PKG = pathlib.Path(__file__).parent.parent / "custom_components" / "reolink_talk"
+PKG = pathlib.Path(__file__).parent.parent / "custom_components" / "reolink_doorbell_talk"
 
 
 def _load(name):

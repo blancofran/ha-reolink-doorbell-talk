@@ -150,7 +150,7 @@ class ReolinkTalkCard extends HTMLElement {
   // Starting config when the card is added from the card picker: the first camera of this integration.
   static getStubConfig(hass) {
     const ents = (hass && hass.entities) || {};
-    const found = Object.keys(ents).find((id) => id.startsWith('camera.') && ents[id].platform === 'reolink_talk' && ents[id].translation_key === 'view');
+    const found = Object.keys(ents).find((id) => id.startsWith('camera.') && ents[id].platform === 'reolink_doorbell_talk' && ents[id].translation_key === 'view');
     return { entity: found || 'camera.doorbell_view_and_listen' };
   }
 
@@ -162,7 +162,7 @@ class ReolinkTalkCard extends HTMLElement {
     // `default` makes the form show the value the card really uses when the option is not in the YAML.
     const num = (name, min, max, def) => ({ name, default: def, selector: { number: { min, max, mode: 'box' } } });
     const schema = [
-      { name: 'entity', required: true, selector: { entity: { filter: { domain: 'camera', integration: 'reolink_talk' } } } },
+      { name: 'entity', required: true, selector: { entity: { filter: { domain: 'camera', integration: 'reolink_doorbell_talk' } } } },
       { name: 'title', selector: { text: {} } },
       { name: 'hold_to_talk', default: false, selector: { boolean: {} } },
       { name: 'autoplay', default: true, selector: { boolean: {} } },

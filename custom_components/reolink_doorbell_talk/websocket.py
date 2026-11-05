@@ -50,11 +50,11 @@ def async_register_commands(hass: HomeAssistant) -> None:
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "reolink_talk/talk", vol.Required("entity_id"): str}
+    {vol.Required("type"): "reolink_doorbell_talk/talk", vol.Required("entity_id"): str}
 )
 @websocket_api.async_response
 async def ws_talk(hass: HomeAssistant, connection, msg: dict) -> None:
-    """Open a voice session; the audio then arrives with reolink_talk/audio."""
+    """Open a voice session; the audio then arrives with reolink_doorbell_talk/audio."""
     entry = _entry_for_entity(hass, msg["entity_id"])
     if entry is None:
         connection.send_error(msg["id"], "not_found", "Unknown talk entity")
@@ -103,7 +103,7 @@ async def ws_talk(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "reolink_talk/audio",
+        vol.Required("type"): "reolink_doorbell_talk/audio",
         vol.Required("session"): str,
         vol.Required("data"): str,
     }

@@ -6,9 +6,9 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
-from custom_components.reolink_talk.const import DOMAIN
-from custom_components.reolink_talk.diagnostics import async_get_config_entry_diagnostics
-from custom_components.reolink_talk.websocket import SESSIONS
+from custom_components.reolink_doorbell_talk.const import DOMAIN
+from custom_components.reolink_doorbell_talk.diagnostics import async_get_config_entry_diagnostics
+from custom_components.reolink_doorbell_talk.websocket import SESSIONS
 
 from .conftest import HOST, PASSWORD, SERIAL, USER
 
@@ -35,7 +35,7 @@ async def test_setup_creates_both_cameras(hass: HomeAssistant, reachable, entry)
 async def test_setup_retries_when_the_doorbell_is_off(hass: HomeAssistant, entry) -> None:
     entry.add_to_hass(hass)
     with patch(
-        "custom_components.reolink_talk.coordinator.asyncio.open_connection",
+        "custom_components.reolink_doorbell_talk.coordinator.asyncio.open_connection",
         AsyncMock(side_effect=OSError("unreachable")),
     ):
         await hass.config_entries.async_setup(entry.entry_id)

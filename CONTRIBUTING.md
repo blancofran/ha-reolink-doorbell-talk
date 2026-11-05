@@ -11,8 +11,8 @@ Thank you for helping! Bug reports, compatibility reports and ideas are welcome:
 
 | Path | What it is |
 |---|---|
-| `custom_components/reolink_talk/` | The integration (config flow, cameras, voice client, WebSocket commands, diagnostics) |
-| `custom_components/reolink_talk/www/` | The two Lovelace cards, the microphone client and the bundled hls.js |
+| `custom_components/reolink_doorbell_talk/` | The integration (config flow, cameras, voice client, WebSocket commands, diagnostics) |
+| `custom_components/reolink_doorbell_talk/www/` | The two Lovelace cards, the microphone client and the bundled hls.js |
 | `tests/` | Tests (see below) |
 
 ## Running the tests

@@ -2,7 +2,7 @@
 
 Live video, sound and **two-way voice** with a Reolink doorbell from Home Assistant, in a single package (integration + cards). It works at home and away **without opening ports, VPNs or external services**: everything goes through Home Assistant's normal connection.
 
-> **Status: beta (0.5.1).** It works in the author's tests with a single model (Reolink Video Doorbell PoE), but there may be bugs and changes between versions. If something fails, open an issue and attach the integration diagnostics (sensitive data is redacted).
+> **Status: beta (0.6.0).** It works in the author's tests with a single model (Reolink Video Doorbell PoE), but there may be bugs and changes between versions. If something fails, open an issue and attach the integration diagnostics (sensitive data is redacted).
 
 [Versión en español](README.es.md)
 
@@ -10,7 +10,7 @@ Live video, sound and **two-way voice** with a Reolink doorbell from Home Assist
 
 | Piece | Purpose |
 |---|---|
-| `reolink_talk` integration | Camera with the doorbell video, voice channel to the doorbell, automatic card registration |
+| `reolink_doorbell_talk` integration | Camera with the doorbell video, voice channel to the doorbell, automatic card registration |
 | `custom:reolink-talk-card` | **Home and away**: HTTPS (HLS) video + talk button. About 3 s delay |
 | `custom:reolink-talk-lan-card` | **Home only**: WebRTC video (lower delay) + the same talk button |
 
@@ -39,6 +39,17 @@ Home only, with WebRTC (the WebRTC camera is created automatically):
 type: custom:reolink-talk-lan-card
 entity: camera.doorbell_view_and_listen
 ```
+
+## Updating from 0.5.x or older
+
+Version 0.6.0 changed the integration's internal name (from `reolink_talk` to `reolink_doorbell_talk`) so it does not clash with other Reolink talk components. Home Assistant treats it as a new integration, so update once like this:
+
+1. Before updating, delete the old integration: *Settings → Devices & services → Reolink Doorbell Talk → ⋮ → Delete*.
+2. Update in HACS and restart Home Assistant.
+3. Add the integration again (*Add integration → Reolink Doorbell Talk*) with your doorbell's address, username and password.
+4. In *Settings → Dashboards → Resources*, delete the two old entries that start with `/reolink_talk/` (the new ones are added automatically).
+5. If the folder `custom_components/reolink_talk` is still there after the update, delete it and restart.
+6. Your cards keep working as they are, except that their camera entity may have a new id. Check the `entity:` line.
 
 ## Doorbell status
 
@@ -101,7 +112,7 @@ Tested devices. Reports come from users; the author has only the first one.
 ## Troubleshooting
 
 - *"Could not open the voice channel"*: another device is talking, or the doorbell does not accept a second voice session. Try again.
-- *"Configuration error"* on the card: reload with Ctrl+Shift+R and check in *Settings → Dashboards → Resources* that the `/reolink_talk/` resources exist.
+- *"Configuration error"* on the card: reload with Ctrl+Shift+R and check in *Settings → Dashboards → Resources* that the `/reolink_doorbell_talk/` resources exist.
 - *No video in the LAN card*: check that the card points to the doorbell's camera and reload the page. If the fast video cannot connect, the card switches to the normal video by itself.
 
 ## Reporting a problem or giving feedback

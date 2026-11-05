@@ -76,14 +76,14 @@ export async function startWsTalk({ hass, entityId, onReady, onClosed }) {
       pending = [];
       let bin = '';
       for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
-      hass.connection.sendMessage({ type: 'reolink_talk/audio', session: sessionId, data: btoa(bin) });
+      hass.connection.sendMessage({ type: 'reolink_doorbell_talk/audio', session: sessionId, data: btoa(bin) });
     };
 
     unsub = await hass.connection.subscribeMessage((ev) => {
       if (stopped) return;
       if (ev.event === 'ready') { sessionId = ev.session; if (onReady) onReady(); }
       else if (ev.event === 'closed') { stop(); if (onClosed) onClosed(ev.reason); }
-    }, { type: 'reolink_talk/talk', entity_id: entityId });
+    }, { type: 'reolink_doorbell_talk/talk', entity_id: entityId });
   } catch (e) {
     stop();
     throw e;

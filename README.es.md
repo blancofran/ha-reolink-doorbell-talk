@@ -2,7 +2,7 @@
 
 Vídeo, sonido y **voz bidireccional** con un timbre Reolink desde Home Assistant, en un único paquete (integración + tarjetas). Funciona en casa y fuera de casa **sin abrir puertos, sin VPN y sin servicios externos**: todo viaja por la conexión normal de Home Assistant.
 
-> **Estado: beta (0.5.1).** Funciona en las pruebas del autor con un único modelo (Reolink Video Doorbell PoE), pero puede haber errores y cambios entre versiones. Si algo falla, abre una *issue* con los diagnósticos de la integración (con los datos sensibles censurados).
+> **Estado: beta (0.6.0).** Funciona en las pruebas del autor con un único modelo (Reolink Video Doorbell PoE), pero puede haber errores y cambios entre versiones. Si algo falla, abre una *issue* con los diagnósticos de la integración (con los datos sensibles censurados).
 
 [English version](README.md)
 
@@ -10,7 +10,7 @@ Vídeo, sonido y **voz bidireccional** con un timbre Reolink desde Home Assistan
 
 | Pieza | Para qué |
 |---|---|
-| Integración `reolink_talk` | Cámara con el vídeo del timbre, canal de voz hacia el timbre y registro automático de las tarjetas |
+| Integración `reolink_doorbell_talk` | Cámara con el vídeo del timbre, canal de voz hacia el timbre y registro automático de las tarjetas |
 | Tarjeta `custom:reolink-talk-card` | **Casa y fuera**: vídeo por HTTPS (HLS) + botón para hablar. Retraso de unos 3 s |
 | Tarjeta `custom:reolink-talk-lan-card` | **Solo en casa**: vídeo por WebRTC (menor retraso) + el mismo botón para hablar |
 
@@ -39,6 +39,17 @@ Solo en casa, con WebRTC (la cámara WebRTC se crea sola):
 type: custom:reolink-talk-lan-card
 entity: camera.timbre_ver_y_escuchar
 ```
+
+## Actualizar desde la 0.5.x o anteriores
+
+La versión 0.6.0 cambió el nombre interno de la integración (de `reolink_talk` a `reolink_doorbell_talk`) para que no choque con otros componentes de voz de Reolink. Home Assistant la trata como una integración nueva, así que hay que actualizar una vez así:
+
+1. Antes de actualizar, elimina la integración antigua: *Ajustes → Dispositivos y servicios → Reolink Doorbell Talk → ⋮ → Eliminar*.
+2. Actualiza en HACS y reinicia Home Assistant.
+3. Añade la integración de nuevo (*Añadir integración → Reolink Doorbell Talk*) con la dirección, usuario y contraseña del timbre.
+4. En *Ajustes → Paneles → Recursos*, borra las dos entradas antiguas que empiezan por `/reolink_talk/` (las nuevas se añaden solas).
+5. Si la carpeta `custom_components/reolink_talk` sigue ahí tras actualizar, bórrala y reinicia.
+6. Tus tarjetas siguen funcionando igual, salvo que la entidad de la cámara puede tener otro id. Revisa la línea `entity:`.
 
 ## Estado del timbre
 
@@ -101,7 +112,7 @@ Dispositivos probados. Los reportes los envían los usuarios; el autor solo tien
 ## Problemas frecuentes
 
 - *"No se pudo abrir el canal de voz"*: otro dispositivo está hablando, o el timbre no acepta una segunda sesión de voz. Reintenta.
-- *"Error de configuración"* en la tarjeta: recarga con Ctrl+Shift+R; comprueba en *Ajustes → Paneles → Recursos* que existen los recursos de `/reolink_talk/`.
+- *"Error de configuración"* en la tarjeta: recarga con Ctrl+Shift+R; comprueba en *Ajustes → Paneles → Recursos* que existen los recursos de `/reolink_doorbell_talk/`.
 - *Sin vídeo en la tarjeta LAN*: comprueba que la tarjeta apunta a la cámara del timbre y recarga la página. Si el vídeo rápido no conecta, la tarjeta cambia sola al vídeo normal.
 
 ## Reportar un problema o dar tu opinión

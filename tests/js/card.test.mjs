@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 
-const WWW = new URL('../../custom_components/reolink_talk/www/', import.meta.url);
+const WWW = new URL('../../custom_components/reolink_doorbell_talk/www/', import.meta.url);
 const ENTITY = 'camera.doorbell';
 
 // Fresh browser per test; the card files are ES modules, so `import.meta.url` is replaced by a constant.
@@ -12,7 +12,7 @@ async function load(file) {
   const dom = new JSDOM('<!doctype html><body></body>', { runScripts: 'outside-only', pretendToBeVisual: true });
   const w = dom.window;
   for (const m of ['load', 'play', 'pause']) w.HTMLMediaElement.prototype[m] = () => {};
-  const src = readFileSync(new URL(file, WWW), 'utf8').replaceAll('import.meta.url', "'http://ha.test/reolink_talk/card.js'");
+  const src = readFileSync(new URL(file, WWW), 'utf8').replaceAll('import.meta.url', "'http://ha.test/reolink_doorbell_talk/card.js'");
   w.eval(src);
   return w;
 }

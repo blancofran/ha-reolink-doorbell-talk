@@ -88,7 +88,7 @@ class BackchannelClient:
         assert self._writer is not None and self._reader is not None
         self._cseq += 1
         url = url or self._url
-        lines = [f"{method} {url} RTSP/1.0", f"CSeq: {self._cseq}", "User-Agent: reolink_talk"]
+        lines = [f"{method} {url} RTSP/1.0", f"CSeq: {self._cseq}", "User-Agent: reolink_doorbell_talk"]
         if self._session:
             lines.append(f"Session: {self._session}")
         lines += extra or []
