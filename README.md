@@ -66,6 +66,7 @@ Both cards have a visual editor (add the card from the card picker, or edit it a
 | `crop_video` | `false` | `true`: fill the frame, cropping the edges, instead of showing the whole image |
 | `max_width` | no limit | Maximum width of the card, in pixels |
 | `show_info` | `false` | Shows the delay on the video; useful when reporting a problem |
+| `fullscreen_button` | `true` | Shows a button on the video to put the whole card (video and talk button) in full screen. Not shown on iPhone, where the browser only allows full screen for the video itself |
 | `view_fallback` | `true` | LAN card only: switch to the normal video if the fast video cannot connect |
 | `max_seconds` | `90` | Longest a single conversation can last |
 | `idle_seconds` | `45` | The microphone closes after this many seconds of silence |

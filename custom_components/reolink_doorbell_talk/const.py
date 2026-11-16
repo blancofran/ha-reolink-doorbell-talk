@@ -17,7 +17,7 @@ DEFAULT_PRELOAD = True
 
 CARD_URL = "/reolink_doorbell_talk/reolink-talk-card.js"
 CARD_LAN_URL = "/reolink_doorbell_talk/reolink-talk-lan-card.js"
-CARD_VERSION = "1.0.0"
+CARD_VERSION = "1.1.0"
 
 
 def stream_source(

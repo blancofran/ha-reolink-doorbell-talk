@@ -120,7 +120,7 @@ test('the editor form lists the card options, and only the LAN card has the fall
   const w = await load('reolink-talk-card.js');
   const names = (cls) => cls.getConfigForm().schema.map((s) => s.name);
   const card = names(w.customElements.get('reolink-talk-card'));
-  for (const n of ['entity', 'title', 'hold_to_talk', 'autoplay', 'aspect_ratio', 'crop_video', 'show_info', 'advanced']) {
+  for (const n of ['entity', 'title', 'hold_to_talk', 'autoplay', 'aspect_ratio', 'crop_video', 'show_info', 'fullscreen_button', 'advanced']) {
     assert.ok(card.includes(n), n);
   }
   assert.ok(!card.includes('view_fallback'));
@@ -146,4 +146,65 @@ test('while the video loads the card says so instead of showing an error', async
   card._hass.callWS = () => new Promise(() => {}); // Home Assistant never answers: the video stays loading
   card._startViewHls();
   assert.equal(q('vmsg').textContent, 'Loading video…');
+});
+
+// jsdom has no Fullscreen API: a small fake with the same calls and events.
+function fakeFullscreen(w) {
+  const d = w.document;
+  const st = { el: null, calls: [] };
+  Object.defineProperty(d, 'fullscreenEnabled', { value: true });
+  Object.defineProperty(d, 'fullscreenElement', { get: () => st.el });
+  w.HTMLElement.prototype.requestFullscreen = function () { st.calls.push('enter'); st.el = this; d.dispatchEvent(new w.Event('fullscreenchange')); return Promise.resolve(); };
+  d.exitFullscreen = () => { st.calls.push('exit'); st.el = null; d.dispatchEvent(new w.Event('fullscreenchange')); return Promise.resolve(); };
+  return st;
+}
+
+async function makeFsCard(config = {}, withApi = true) {
+  const w = await load('reolink-talk-card.js');
+  const st = withApi ? fakeFullscreen(w) : null;
+  const card = w.document.createElement('reolink-talk-card');
+  w.document.body.appendChild(card);
+  card.setConfig({ entity: ENTITY, autoplay: false, ...config });
+  card.hass = hass(w);
+  return { w, card, st, q: (id) => card.shadowRoot.getElementById(id) };
+}
+
+test('fullscreen: the button toggles the whole card and its icon follows', async () => {
+  const { card, st, q } = await makeFsCard();
+  assert.ok(card.hasAttribute('data-fs-ok'));
+  assert.equal(q('fsi').getAttribute('icon'), 'mdi:fullscreen');
+  q('fs').click();
+  assert.deepEqual(st.calls, ['enter']);
+  assert.equal(st.el, card); // the card (video + talk button), not just the video
+  assert.equal(q('fsi').getAttribute('icon'), 'mdi:fullscreen-exit');
+  q('fs').click();
+  assert.deepEqual(st.calls, ['enter', 'exit']);
+  assert.equal(q('fsi').getAttribute('icon'), 'mdi:fullscreen');
+});
+
+test('fullscreen: the button is hidden when the option is off or the browser has no API', async () => {
+  assert.ok(!(await makeFsCard({ fullscreen_button: false })).card.hasAttribute('data-fs-ok'));
+  assert.ok(!(await makeFsCard({}, false)).card.hasAttribute('data-fs-ok'));
+});
+
+test('fullscreen: leaving it does not close a conversation, and going offline still does', async () => {
+  const { w, card, st, q } = await makeFsCard();
+  let torn = 0;
+  card._teardownTalk = () => { torn++; card._talk = null; };
+  card._talk = { kind: 'ws' };
+  q('fs').click();
+  q('fs').click();
+  assert.equal(torn, 0);
+  assert.ok(card._talk);
+  q('fs').click();
+  card.hass = hass(w, 'unavailable');
+  assert.equal(torn, 1);
+  assert.equal(st.el, card); // the card stays in full screen, showing the offline notice
+});
+
+test('fullscreen: removing the card from the page leaves full screen', async () => {
+  const { card, st, q } = await makeFsCard();
+  q('fs').click();
+  card.remove();
+  assert.equal(st.el, null);
 });

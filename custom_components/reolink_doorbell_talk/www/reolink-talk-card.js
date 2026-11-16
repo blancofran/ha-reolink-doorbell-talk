@@ -59,7 +59,7 @@ function loadHls(url) {
 const RT_EDITOR = {
   es: {
     entity: 'Cámara del timbre', title: 'Título', hold_to_talk: 'Mantener pulsado para hablar', autoplay: 'Iniciar el vídeo automáticamente',
-    aspect_ratio: 'Proporción del vídeo', crop_video: 'Recortar el vídeo para llenar el recuadro', show_info: 'Mostrar el transporte y el retraso en el vídeo', view_fallback: 'Usar HLS si WebRTC no funciona',
+    aspect_ratio: 'Proporción del vídeo', crop_video: 'Recortar el vídeo para llenar el recuadro', show_info: 'Mostrar el transporte y el retraso en el vídeo', fullscreen_button: 'Botón de pantalla completa', view_fallback: 'Usar HLS si WebRTC no funciona',
     advanced: 'Opciones avanzadas', max_seconds: 'Duración máxima de la conversación (s)', idle_seconds: 'Cierre por inactividad (s)',
     warn_seconds: 'Aviso antes de cerrar (s)', timeout: 'Espera máxima de conexión (s)', max_width: 'Ancho máximo (px)',
     aspect_ratio_h: 'Por ejemplo 4:3, 16:9 o 19:8. Con una altura fija, el vídeo se ajusta al hueco.',
@@ -70,7 +70,7 @@ const RT_EDITOR = {
   },
   en: {
     entity: 'Doorbell camera', title: 'Title', hold_to_talk: 'Hold to talk', autoplay: 'Start the video automatically',
-    aspect_ratio: 'Video aspect ratio', crop_video: 'Crop the video to fill the frame', show_info: 'Show the transport and delay on the video', view_fallback: 'Fall back to HLS if WebRTC does not work',
+    aspect_ratio: 'Video aspect ratio', crop_video: 'Crop the video to fill the frame', show_info: 'Show the transport and delay on the video', fullscreen_button: 'Full screen button', view_fallback: 'Fall back to HLS if WebRTC does not work',
     advanced: 'Advanced options', max_seconds: 'Maximum talk time (s)', idle_seconds: 'Close when idle (s)',
     warn_seconds: 'Warning before closing (s)', timeout: 'Connection timeout (s)', max_width: 'Maximum width (px)',
     aspect_ratio_h: 'For example 4:3, 16:9 or 19:8. With a fixed height, the video fits the space.',
@@ -89,13 +89,14 @@ class ReolinkTalkCard extends HTMLElement {
     if (!entity) throw new Error('reolink-talk-card: define entity');
     this._c = Object.assign({
       title: null, mode: 'toggle', timeout: 12, max_seconds: 90, warn_seconds: 10, idle_seconds: 45,
-      autoplay: true, show_info: false, view_fallback: true, max_width: null, aspect_ratio: '4:3', crop_video: false, hls_url: null, view_transport: 'hls', view_timeout: 6, webrtc_entity: null,
+      autoplay: true, show_info: false, view_fallback: true, max_width: null, aspect_ratio: '4:3', crop_video: false, fullscreen_button: true, hls_url: null, view_transport: 'hls', view_timeout: 6, webrtc_entity: null,
     }, config, { entity });
     if (config.hold_to_talk) this._c.mode = 'hold'; // the visual editor's switch for mode: hold
     if (!this.shadowRoot) this._build();
     this._applyLayout();
     this._updateTitle();
     if (this._c.show_info) this.setAttribute('data-info', ''); else this.removeAttribute('data-info');
+    this._syncFullscreen();
     this._set(this._state || 'off');
   }
 
@@ -169,6 +170,7 @@ class ReolinkTalkCard extends HTMLElement {
       { name: 'aspect_ratio', default: '4:3', selector: { text: {} } },
       { name: 'crop_video', default: false, selector: { boolean: {} } },
       { name: 'show_info', default: false, selector: { boolean: {} } },
+      { name: 'fullscreen_button', default: true, selector: { boolean: {} } },
     ];
     if (this.isLan) schema.push({ name: 'view_fallback', default: true, selector: { boolean: {} } });
     schema.push({
@@ -205,6 +207,11 @@ class ReolinkTalkCard extends HTMLElement {
     this._onHide = () => { if (this._talk) this._auto(this._t('bg')); this._stopView(); };
     document.addEventListener('visibilitychange', this._onVis);
     window.addEventListener('pagehide', this._onHide);
+    const fs = this._fsApi();
+    this._fsEv = fs && fs.ev;
+    this._onFs = () => this._syncFullscreen();
+    if (this._fsEv) document.addEventListener(this._fsEv, this._onFs);
+    this._syncFullscreen();
     if (this._hass && this._c && this._c.autoplay && !this._viewTried) { this._viewTried = true; this._startView(); }
   }
 
@@ -215,6 +222,8 @@ class ReolinkTalkCard extends HTMLElement {
     clearTimeout(this._msgT);
     document.removeEventListener('visibilitychange', this._onVis);
     window.removeEventListener('pagehide', this._onHide);
+    if (this._fsEv) document.removeEventListener(this._fsEv, this._onFs);
+    if (this._isFullscreen()) { try { this._fsApi().off(); } catch (e) {} }
   }
 
   // ---------- UI ----------
@@ -234,9 +243,16 @@ class ReolinkTalkCard extends HTMLElement {
         .vwrap { position: relative; border-radius: 14px; overflow: hidden; background: #000;
           flex: 1 1 auto; min-height: 0; aspect-ratio: var(--rt-aspect, 4 / 3); }
         video { width: 100%; height: 100%; object-fit: var(--rt-fit, contain); display: block; }
-        #snd { position: absolute; right: 8px; bottom: 8px; border: 0; border-radius: 999px; padding: 6px 12px;
+        .ctl { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 6px; align-items: center; }
+        #snd, #fs { border: 0; border-radius: 999px; padding: 6px 12px;
           background: rgba(0,0,0,.55); color: #fff; font-size: 13px; cursor: pointer; display: flex; gap: 6px; align-items: center; }
-        #snd ha-icon { --mdc-icon-size: 18px; }
+        #snd ha-icon, #fs ha-icon { --mdc-icon-size: 18px; }
+        #fs { padding: 6px 8px; }
+        :host(:not([data-fs-ok])) #fs { display: none; }
+        /* Full screen: the whole card (video + talk button) fills the screen. */
+        :host(:fullscreen) { background: #000; }
+        :host(:fullscreen) .card { max-width: none; margin: 0; border-radius: 0; border: 0; box-shadow: none; height: 100%; }
+        :host(:fullscreen) .vwrap { aspect-ratio: auto; border-radius: 0; }
         #tr { position: absolute; left: 8px; bottom: 8px; font-size: 11px; padding: 2px 8px; border-radius: 999px;
           background: rgba(0,0,0,.55); color: #9fe9ff; pointer-events: none; }
         #tr:empty { display: none; }
@@ -257,7 +273,8 @@ class ReolinkTalkCard extends HTMLElement {
       <div class="card">
         <div class="head"><ha-icon icon="mdi:doorbell-video"></ha-icon><div class="title" id="ttl"></div></div>
         <div class="vwrap"><video id="v" autoplay playsinline muted></video><div id="vmsg"></div><div id="tr"></div>
-          <button id="snd"><ha-icon id="sndi" icon="mdi:volume-off"></ha-icon><span id="sndt"></span></button></div>
+          <div class="ctl"><button id="snd"><ha-icon id="sndi" icon="mdi:volume-off"></ha-icon><span id="sndt"></span></button>
+          <button id="fs"><ha-icon id="fsi" icon="mdi:fullscreen"></ha-icon></button></div></div>
         <button id="b" class="off"><ha-icon id="i" icon="mdi:microphone"></ha-icon><span id="t"></span></button>
         <div class="msg" id="m"></div>
       </div>`;
@@ -274,6 +291,7 @@ class ReolinkTalkCard extends HTMLElement {
       this._refreshSound();
       if (!this._video.muted) { const p = this._video.play(); if (p && p.catch) p.catch(() => {}); }
     });
+    r.getElementById('fs').addEventListener('click', () => this._toggleFullscreen());
     const b = r.getElementById('b');
     if (this._c.mode === 'hold') {
       b.addEventListener('pointerdown', (e) => { e.preventDefault(); this._start(); });
@@ -284,6 +302,33 @@ class ReolinkTalkCard extends HTMLElement {
     }
     this._refreshSound();
     if (this._offline) { this._videoMsg(this._t('offline')); this._syncTalkButton(); }
+  }
+
+  // ---------- full screen (whole card, so the talk button stays available) ----------
+  // The standard API is not offered on iPhone (only the system video player there), so the button stays hidden.
+  _fsApi() {
+    const d = document, h = this;
+    if (d.fullscreenEnabled && h.requestFullscreen) return { on: () => h.requestFullscreen(), off: () => d.exitFullscreen(), el: () => d.fullscreenElement, ev: 'fullscreenchange' };
+    if (d.webkitFullscreenEnabled && h.webkitRequestFullscreen) return { on: () => h.webkitRequestFullscreen(), off: () => d.webkitExitFullscreen(), el: () => d.webkitFullscreenElement, ev: 'webkitfullscreenchange' };
+    return null;
+  }
+
+  _isFullscreen() { const a = this._fsApi(); return !!a && a.el() === this; }
+
+  _toggleFullscreen() {
+    const a = this._fsApi(); if (!a) return;
+    try {
+      const p = this._isFullscreen() ? a.off() : a.on();
+      if (p && p.catch) p.catch((e) => this._log('fullscreen: ' + (e && e.message ? e.message : e)));
+    } catch (e) { this._log('fullscreen: ' + (e && e.message ? e.message : e)); }
+  }
+
+  // Shows or hides the button (option + browser support) and keeps its icon in sync.
+  _syncFullscreen() {
+    const ok = !!this._fsApi() && !!this._c && this._c.fullscreen_button !== false;
+    if (ok) this.setAttribute('data-fs-ok', ''); else this.removeAttribute('data-fs-ok');
+    const i = this.shadowRoot && this.shadowRoot.getElementById('fsi');
+    if (i) i.setAttribute('icon', this._isFullscreen() ? 'mdi:fullscreen-exit' : 'mdi:fullscreen');
   }
 
   // The talk button is disabled while the doorbell does not answer.
