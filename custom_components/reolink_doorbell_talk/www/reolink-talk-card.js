@@ -317,9 +317,13 @@ class ReolinkTalkCard extends HTMLElement {
     return null;
   }
 
+  // Asks the card itself: inside Home Assistant's shadow DOM, document.fullscreenElement is the outer container, not the card.
   _isFullscreen() {
-    const a = this._fsApi();
-    return this.hasAttribute('data-fs-css') || (!!a && a.el() === this);
+    if (this.hasAttribute('data-fs-css')) return true;
+    for (const q of [':fullscreen', ':-webkit-full-screen']) {
+      try { if (this.matches(q)) return true; } catch (e) { /* selector not supported here */ }
+    }
+    return false;
   }
 
   _toggleFullscreen() {

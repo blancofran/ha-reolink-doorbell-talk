@@ -153,17 +153,25 @@ function fakeFullscreen(w) {
   const d = w.document;
   const st = { el: null, calls: [] };
   Object.defineProperty(d, 'fullscreenEnabled', { value: true });
-  Object.defineProperty(d, 'fullscreenElement', { get: () => st.el });
+  // Like a real browser, document.fullscreenElement is retargeted to the outermost shadow host.
+  const outer = (el) => { while (el && el.getRootNode() instanceof w.ShadowRoot) el = el.getRootNode().host; return el; };
+  Object.defineProperty(d, 'fullscreenElement', { get: () => outer(st.el) });
+  const origMatches = w.Element.prototype.matches;
+  w.Element.prototype.matches = function (q) { return q === ':fullscreen' ? st.el === this : origMatches.call(this, q); };
   w.HTMLElement.prototype.requestFullscreen = function () { st.calls.push('enter'); st.el = this; d.dispatchEvent(new w.Event('fullscreenchange')); return Promise.resolve(); };
   d.exitFullscreen = () => { st.calls.push('exit'); st.el = null; d.dispatchEvent(new w.Event('fullscreenchange')); return Promise.resolve(); };
   return st;
 }
 
-async function makeFsCard(config = {}, withApi = true) {
+async function makeFsCard(config = {}, withApi = true, nested = false) {
   const w = await load('reolink-talk-card.js');
   const st = withApi ? fakeFullscreen(w) : null;
   const card = w.document.createElement('reolink-talk-card');
-  w.document.body.appendChild(card);
+  if (nested) { // inside another element's shadow DOM, as in Home Assistant
+    const host = w.document.createElement('div');
+    w.document.body.appendChild(host);
+    host.attachShadow({ mode: 'open' }).appendChild(card);
+  } else w.document.body.appendChild(card);
   card.setConfig({ entity: ENTITY, autoplay: false, ...config });
   card.hass = hass(w);
   return { w, card, st, q: (id) => card.shadowRoot.getElementById(id) };
@@ -250,4 +258,14 @@ test('fullscreen: removing the card from the page leaves full screen', async () 
   q('fs').click();
   card.remove();
   assert.equal(st.el, null);
+});
+
+test('fullscreen: the button also leaves when the card is inside another shadow DOM (as in Home Assistant)', async () => {
+  const { card, st, q } = await makeFsCard({}, true, true);
+  q('fs').click();
+  assert.equal(st.el, card);
+  assert.equal(q('fsi').getAttribute('icon'), 'mdi:fullscreen-exit');
+  q('fs').click();
+  assert.deepEqual(st.calls, ['enter', 'exit']);
+  assert.equal(q('fsi').getAttribute('icon'), 'mdi:fullscreen');
 });
