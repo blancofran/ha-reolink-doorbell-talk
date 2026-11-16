@@ -12,7 +12,7 @@ const RT_TEXT = {
     needHttps: 'El micrófono necesita una dirección HTTPS', lost: 'Se perdió la conexión con el timbre',
     timeoutMsg: 'El timbre no respondió a tiempo', bg: 'Micrófono cerrado: la app pasó a segundo plano',
     maxTime: 'Micrófono cerrado: se acabó el tiempo', idle: 'Micrófono cerrado por inactividad',
-    videoErr: 'No se pudo cargar el video', closeIn: (s) => `Se cerrará en ${s} s · toca la pantalla para seguir`,
+    videoErr: 'No se pudo cargar el video', videoLoading: 'Cargando video…', closeIn: (s) => `Se cerrará en ${s} s · toca la pantalla para seguir`,
     busy: 'Otro dispositivo está hablando con el timbre', talkFail: 'No se pudo abrir el canal de voz',
     rtcErr: 'WebRTC no conectó (solo funciona en la red local)',
     offline: 'El timbre no responde', notAllowed: 'Solo los administradores pueden hablar por el timbre', title: 'Timbre', titleLan: 'Timbre (LAN)',
@@ -23,7 +23,7 @@ const RT_TEXT = {
     noMic: 'No microphone permission on this device', needHttps: 'The microphone needs an HTTPS address',
     lost: 'Connection to the doorbell lost', timeoutMsg: 'The doorbell did not answer in time',
     bg: 'Microphone closed: app went to background', maxTime: 'Microphone closed: time is up',
-    idle: 'Microphone closed due to inactivity', videoErr: 'Could not load the video',
+    idle: 'Microphone closed due to inactivity', videoErr: 'Could not load the video', videoLoading: 'Loading video…',
     closeIn: (s) => `Closing in ${s} s · tap the screen to keep going`,
     busy: 'Another device is already talking to the doorbell', talkFail: 'Could not open the voice channel',
     rtcErr: 'WebRTC could not connect (it only works on the local network)',
@@ -463,7 +463,7 @@ class ReolinkTalkCard extends HTMLElement {
   async _startViewHls() {
     if (this._hls || this._hlsBusy || !this._hass) return;
     this._hlsBusy = true;
-    this._videoMsg('');
+    this._videoMsg(this._t('videoLoading'));
     try {
       const res = await this._hass.callWS({ type: 'camera/stream', entity_id: this._c.entity, format: 'hls' });
       this._log('HLS URL ready ' + res.url);
@@ -501,8 +501,8 @@ class ReolinkTalkCard extends HTMLElement {
       this._setTransport('HLS');
       clearTimeout(this._hlsWatch);
       this._hlsWatch = setTimeout(() => {
-        if (this._hls && this._tView) { this._log('no image after 12 s'); this._videoFailed('no image'); }
-      }, 12000);
+        if (this._hls && this._tView) { this._log('no image after 25 s'); this._videoFailed('no image'); }
+      }, 25000);
     } catch (e) {
       this._log('failed to start HLS: ' + (e && e.message ? e.message : e));
       this._hlsBusy = false;
@@ -518,7 +518,7 @@ class ReolinkTalkCard extends HTMLElement {
     clearTimeout(this._hlsWatch);
     this._retries = (this._retries || 0) + 1;
     if (this._retries <= 2 && this.isConnected && !document.hidden) {
-      this._videoMsg(this._t('videoErr') + ' (' + why + ') …');
+      this._videoMsg(this._t('videoLoading'));
       clearTimeout(this._retryT);
       this._retryT = setTimeout(() => { this._tView = performance.now(); this._startViewHls(); }, 1500);
     } else {

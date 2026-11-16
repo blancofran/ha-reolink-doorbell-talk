@@ -140,3 +140,10 @@ test('the LAN card forces WebRTC and keeps the same offline behaviour', async ()
   assert.equal(card.shadowRoot.getElementById('b').disabled, true);
   assert.equal(card.shadowRoot.getElementById('ttl').textContent, 'Doorbell (LAN)');
 });
+
+test('while the video loads the card says so instead of showing an error', async () => {
+  const { card, q } = await makeCard({});
+  card._hass.callWS = () => new Promise(() => {}); // Home Assistant never answers: the video stays loading
+  card._startViewHls();
+  assert.equal(q('vmsg').textContent, 'Loading video…');
+});
