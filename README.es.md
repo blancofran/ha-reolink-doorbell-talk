@@ -66,7 +66,7 @@ Ambas tarjetas tienen editor visual (añade la tarjeta desde el selector de tarj
 | `crop_video` | `false` | `true`: llena el recuadro recortando los bordes, en vez de mostrar la imagen entera |
 | `max_width` | sin límite | Ancho máximo de la tarjeta, en píxeles |
 | `show_info` | `false` | Muestra el retraso sobre el vídeo; útil al reportar un problema |
-| `fullscreen_button` | `true` | Muestra un botón sobre el vídeo para poner la tarjeta entera (vídeo y botón de hablar) a pantalla completa. No aparece en iPhone, donde el navegador solo permite pantalla completa para el vídeo solo |
+| `fullscreen_button` | `true` | Muestra un botón sobre el vídeo para poner la tarjeta entera (vídeo y botón de hablar) a pantalla completa. Donde el navegador no permite pantalla completa de elementos (iPhone, la app de iOS, Fully Kiosk), la tarjeta cubre toda la ventana |
 | `view_fallback` | `true` | Solo tarjeta LAN: cambia al vídeo normal si el vídeo rápido no conecta |
 | `max_seconds` | `90` | Duración máxima de una conversación |
 | `idle_seconds` | `45` | El micrófono se cierra tras estos segundos de silencio |

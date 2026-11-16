@@ -223,7 +223,7 @@ class ReolinkTalkCard extends HTMLElement {
     document.removeEventListener('visibilitychange', this._onVis);
     window.removeEventListener('pagehide', this._onHide);
     if (this._fsEv) document.removeEventListener(this._fsEv, this._onFs);
-    if (this._isFullscreen()) { try { this._fsApi().off(); } catch (e) {} }
+    if (this._isFullscreen()) this._exitFullscreen();
   }
 
   // ---------- UI ----------
@@ -250,9 +250,12 @@ class ReolinkTalkCard extends HTMLElement {
         #fs { padding: 6px 8px; }
         :host(:not([data-fs-ok])) #fs { display: none; }
         /* Full screen: the whole card (video + talk button) fills the screen. */
-        :host(:fullscreen) { background: #000; }
-        :host(:fullscreen) .card { max-width: none; margin: 0; border-radius: 0; border: 0; box-shadow: none; height: 100%; }
-        :host(:fullscreen) .vwrap { aspect-ratio: auto; border-radius: 0; }
+        :host(:fullscreen), :host([data-fs-css]) { background: #000; }
+        :host(:fullscreen) .card, :host([data-fs-css]) .card { max-width: none; margin: 0; border-radius: 0; border: 0; box-shadow: none; height: 100%; }
+        :host(:fullscreen) .vwrap, :host([data-fs-css]) .vwrap { aspect-ratio: auto; border-radius: 0; }
+        /* Fallback where the browser has no element full screen (iPhone, some WebViews): the card covers the window. */
+        :host([data-fs-css]) { position: fixed; inset: 0; z-index: 9999; height: auto; }
+        :host([data-fs-css]) .card { padding: calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left)); }
         #tr { position: absolute; left: 8px; bottom: 8px; font-size: 11px; padding: 2px 8px; border-radius: 999px;
           background: rgba(0,0,0,.55); color: #9fe9ff; pointer-events: none; }
         #tr:empty { display: none; }
@@ -305,7 +308,8 @@ class ReolinkTalkCard extends HTMLElement {
   }
 
   // ---------- full screen (whole card, so the talk button stays available) ----------
-  // The standard API is not offered on iPhone (only the system video player there), so the button stays hidden.
+  // Standard Fullscreen API where the browser has it. Elsewhere (iPhone and the Companion app on iOS, Android
+  // WebViews such as Fully Kiosk) the card covers the whole window with CSS instead.
   _fsApi() {
     const d = document, h = this;
     if (d.fullscreenEnabled && h.requestFullscreen) return { on: () => h.requestFullscreen(), off: () => d.exitFullscreen(), el: () => d.fullscreenElement, ev: 'fullscreenchange' };
@@ -313,19 +317,52 @@ class ReolinkTalkCard extends HTMLElement {
     return null;
   }
 
-  _isFullscreen() { const a = this._fsApi(); return !!a && a.el() === this; }
-
-  _toggleFullscreen() {
-    const a = this._fsApi(); if (!a) return;
-    try {
-      const p = this._isFullscreen() ? a.off() : a.on();
-      if (p && p.catch) p.catch((e) => this._log('fullscreen: ' + (e && e.message ? e.message : e)));
-    } catch (e) { this._log('fullscreen: ' + (e && e.message ? e.message : e)); }
+  _isFullscreen() {
+    const a = this._fsApi();
+    return this.hasAttribute('data-fs-css') || (!!a && a.el() === this);
   }
 
-  // Shows or hides the button (option + browser support) and keeps its icon in sync.
+  _toggleFullscreen() {
+    if (this._isFullscreen()) return this._exitFullscreen();
+    const a = this._fsApi();
+    if (!a) return this._enterCssFullscreen();
+    try {
+      const p = a.on();
+      if (p && p.catch) p.catch((e) => { this._log('fullscreen: ' + (e && e.message ? e.message : e)); this._enterCssFullscreen(); });
+    } catch (e) { this._log('fullscreen: ' + (e && e.message ? e.message : e)); this._enterCssFullscreen(); }
+  }
+
+  _exitFullscreen() {
+    if (this.hasAttribute('data-fs-css')) {
+      this.removeAttribute('data-fs-css');
+      document.removeEventListener('keydown', this._onFsKey);
+      this._syncFullscreen();
+      return;
+    }
+    const a = this._fsApi();
+    try { const p = a && a.off(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+  }
+
+  _enterCssFullscreen() {
+    this.setAttribute('data-fs-css', '');
+    this._onFsKey = this._onFsKey || ((e) => { if (e.key === 'Escape') this._exitFullscreen(); });
+    document.addEventListener('keydown', this._onFsKey);
+    this._syncFullscreen();
+    // Some Home Assistant containers keep a fixed element inside their own area: if the card does not
+    // cover the window, give it up and hide the button instead of leaving a half-sized "full screen".
+    requestAnimationFrame(() => {
+      const r = this.getBoundingClientRect();
+      if (this.hasAttribute('data-fs-css') && r.width > 0 && (Math.abs(r.width - window.innerWidth) > 4 || Math.abs(r.height - window.innerHeight) > 4)) {
+        this._log('fullscreen: the container limits the card, button disabled');
+        this._fsBroken = true;
+        this._exitFullscreen();
+      }
+    });
+  }
+
+  // Shows or hides the button (option) and keeps its icon in sync.
   _syncFullscreen() {
-    const ok = !!this._fsApi() && !!this._c && this._c.fullscreen_button !== false;
+    const ok = !!this._c && this._c.fullscreen_button !== false && !this._fsBroken;
     if (ok) this.setAttribute('data-fs-ok', ''); else this.removeAttribute('data-fs-ok');
     const i = this.shadowRoot && this.shadowRoot.getElementById('fsi');
     if (i) i.setAttribute('icon', this._isFullscreen() ? 'mdi:fullscreen-exit' : 'mdi:fullscreen');

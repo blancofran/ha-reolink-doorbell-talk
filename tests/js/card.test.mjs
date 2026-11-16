@@ -182,9 +182,52 @@ test('fullscreen: the button toggles the whole card and its icon follows', async
   assert.equal(q('fsi').getAttribute('icon'), 'mdi:fullscreen');
 });
 
-test('fullscreen: the button is hidden when the option is off or the browser has no API', async () => {
+test('fullscreen: the button is hidden when the option is off', async () => {
   assert.ok(!(await makeFsCard({ fullscreen_button: false })).card.hasAttribute('data-fs-ok'));
-  assert.ok(!(await makeFsCard({}, false)).card.hasAttribute('data-fs-ok'));
+  assert.ok(!(await makeFsCard({ fullscreen_button: false }, false)).card.hasAttribute('data-fs-ok'));
+});
+
+test('fullscreen without the browser API: the card covers the window with CSS and Escape leaves', async () => {
+  const { w, card, q } = await makeFsCard({}, false);
+  assert.ok(card.hasAttribute('data-fs-ok')); // iPhone, Companion app on iOS, Fully Kiosk...
+  q('fs').click();
+  assert.ok(card.hasAttribute('data-fs-css'));
+  assert.equal(q('fsi').getAttribute('icon'), 'mdi:fullscreen-exit');
+  w.document.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape' }));
+  assert.ok(!card.hasAttribute('data-fs-css'));
+  assert.equal(q('fsi').getAttribute('icon'), 'mdi:fullscreen');
+  q('fs').click();
+  q('fs').click();
+  assert.ok(!card.hasAttribute('data-fs-css'));
+});
+
+test('fullscreen without the browser API: a conversation survives entering and leaving', async () => {
+  const { card, q } = await makeFsCard({}, false);
+  let torn = 0;
+  card._teardownTalk = () => { torn++; card._talk = null; };
+  card._talk = { kind: 'ws' };
+  q('fs').click();
+  q('fs').click();
+  assert.equal(torn, 0);
+  assert.ok(card._talk);
+});
+
+test('fullscreen without the browser API: if the container limits the card, it gives up and hides the button', async () => {
+  const { w, card, q } = await makeFsCard({}, false);
+  card.getBoundingClientRect = () => ({ width: 300, height: 200 }); // not the size of the window
+  q('fs').click();
+  await new Promise((r) => w.requestAnimationFrame(r));
+  await new Promise((r) => setTimeout(r, 20));
+  assert.ok(!card.hasAttribute('data-fs-css'));
+  assert.ok(!card.hasAttribute('data-fs-ok'));
+});
+
+test('fullscreen: when the browser refuses the request, the CSS mode takes over', async () => {
+  const { w, card, q } = await makeFsCard();
+  w.HTMLElement.prototype.requestFullscreen = () => Promise.reject(new Error('not allowed'));
+  q('fs').click();
+  await new Promise((r) => setTimeout(r, 10));
+  assert.ok(card.hasAttribute('data-fs-css'));
 });
 
 test('fullscreen: leaving it does not close a conversation, and going offline still does', async () => {
