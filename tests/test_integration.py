@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
+from homeassistant.setup import async_setup_component
 
 from custom_components.reolink_doorbell_talk.const import DOMAIN
 from custom_components.reolink_doorbell_talk.diagnostics import async_get_config_entry_diagnostics
@@ -19,6 +20,18 @@ def _camera_ids(hass, entry):
         e.unique_id: e.entity_id
         for e in er.async_entries_for_config_entry(registry, entry.entry_id)
     }
+
+
+async def test_card_files_are_served_as_soon_as_the_integration_loads(
+    hass: HomeAssistant, hass_client_no_auth
+) -> None:
+    """No doorbell is set up yet: the files must already answer (no 404 while starting)."""
+    assert await async_setup_component(hass, DOMAIN, {})
+    client = await hass_client_no_auth()
+    for name in ("reolink-talk-card.js", "reolink-talk-lan-card.js"):
+        response = await client.get(f"/reolink_doorbell_talk/{name}")
+        assert response.status == 200, name
+        assert "customElements.define" in await response.text()
 
 
 async def test_setup_creates_both_cameras(hass: HomeAssistant, reachable, entry) -> None:

@@ -21,12 +21,30 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS = ["camera"]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 _CARD_REGISTERED = f"{DOMAIN}_card_registered"
+_CARDS_SERVED = f"{DOMAIN}_cards_served"
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Register the WebSocket commands once."""
+    """Register the WebSocket commands and serve the cards, once.
+
+    The card files are served here, not when a doorbell is set up: this runs as soon
+    as the integration loads, so a browser that opens Home Assistant while it starts
+    finds the files as early as possible instead of a 404 until the doorbell is ready.
+    """
     async_register_commands(hass)
+    await _async_serve_cards(hass)
     return True
+
+
+async def _async_serve_cards(hass: HomeAssistant) -> None:
+    """Publish the folder with the card files, once."""
+    if hass.data.get(_CARDS_SERVED):
+        return
+    hass.data[_CARDS_SERVED] = True
+    www = Path(__file__).parent / "www"
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(CARD_URL.rsplit("/", 1)[0], str(www), cache_headers=False)]
+    )
 
 
 async def _async_register_resource(hass: HomeAssistant, url: str) -> bool:
@@ -66,14 +84,10 @@ async def _async_register_resource(hass: HomeAssistant, url: str) -> bool:
 
 
 async def _async_register_card(hass: HomeAssistant) -> None:
-    """Serve the card and load it in the dashboards, once."""
+    """Load the cards in the dashboards, once."""
     if hass.data.get(_CARD_REGISTERED):
         return
     hass.data[_CARD_REGISTERED] = True
-    www = Path(__file__).parent / "www"
-    await hass.http.async_register_static_paths(
-        [StaticPathConfig(CARD_URL.rsplit("/", 1)[0], str(www), cache_headers=False)]
-    )
     for base in (CARD_URL, CARD_LAN_URL):
         url = f"{base}?v={CARD_VERSION}"
         if not await _async_register_resource(hass, url):
